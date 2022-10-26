@@ -12,7 +12,11 @@ const Home: NextPage = () => {
     data: memberPair,
     refetch,
     isLoading,
-  } = trpc.example.getTwoMembers.useQuery();
+  } = trpc.example.getTwoMembers.useQuery(undefined, {
+    refetchInterval: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  }); // Adjust this so it doesn't refetch so often
 
   const voteMutation = trpc.example.voteForMember.useMutation();
 
