@@ -26,4 +26,8 @@ export default defineNextConfig({
     locales: ["en"],
     defaultLocale: "en",
   },
+  images: {
+    loader: "default",
+    domains: ["raw.githubusercontent.com", "i.ibb.co", "ibb.co"],
+  },
 });

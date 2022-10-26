@@ -63,3 +63,26 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model DaoMember {
+  id            String @id @default(cuid())
+  name          String @default("")
+  roles         String @default("")
+  image_url     String @default("")
+  biography     String @default("") @mysql.Text
+  contributions String @default("") @mysql.Text
+  votesFor      Vote[] @relation("Vote_votedFor")
+  votesAgainst  Vote[] @relation("Vote_votedAgainst")
+}
+
+model Vote {
+  id             String     @id @default(cuid())
+  createdAt      DateTime   @default(now())
+  votedFor       DaoMember? @relation("Vote_votedFor", fields: [votedForId], references: [id])
+  votedForId     String?    @map("votedFor")
+  votedAgainst   DaoMember? @relation("Vote_votedAgainst", fields: [votedAgainstId], references: [id])
+  votedAgainstId String?    @map("votedAgainst")
+
+  @@index([votedForId])
+  @@index([votedAgainstId])
+}
