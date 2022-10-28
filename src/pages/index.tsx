@@ -1,25 +1,26 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { signIn, signOut, useSession } from "next-auth/react";
+
 import { trpc } from "../utils/trpc";
 import Image from "next/image";
-import Link from "next/link";
 import type { GetInferenceHelpers } from "@trpc/server";
 import type { AppRouter } from "@/server/trpc/router/_app";
 
+import Header from "src-components/Header";
+
 const Home: NextPage = () => {
-  const {
-    data: memberPair,
-    refetch,
-    isLoading,
-  } = trpc.example.getTwoMembers.useQuery(undefined, {
-    refetchInterval: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-  }); // Adjust this so it doesn't refetch so often
+  //Fetch 2 Members
+  const { data: memberPair, refetch } = trpc.example.getTwoMembers.useQuery(
+    undefined,
+    {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
+  //Voting Logic
   const voteMutation = trpc.example.voteForMember.useMutation();
-
   const voteForMember = (selected: string) => {
     //Ensure that we have the data or else TS throws undefined errors
     if (!memberPair) return;
@@ -53,6 +54,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <Header />
+
       <div className="relative flex h-screen w-screen flex-col items-center justify-center">
         <div className="absolute top-0 mt-24 text-center text-2xl">
           Choose a Dao Member
@@ -76,14 +79,6 @@ const Home: NextPage = () => {
             <Image src="/loading-spinner.svg" width={256} height={256} alt="" />
           )}
         </div>
-        <div className="absolute top-0 w-full pb-2 text-center text-xl">
-          <Link href="/results">
-            <a className="px-2">Results</a>
-          </Link>
-          <Link href="/posts">
-            <a className="px-2">Posts</a>
-          </Link>
-        </div>
       </div>
     </>
   );
@@ -91,6 +86,7 @@ const Home: NextPage = () => {
 
 export default Home;
 
+//Component for Creating MemberCard in The Game
 type RouterInput = GetInferenceHelpers<AppRouter>;
 type MemberFromSever =
   RouterInput["example"]["getTwoMembers"]["output"]["firstMember"];

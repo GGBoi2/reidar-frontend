@@ -39,4 +39,51 @@ export const exampleRouter = router({
       });
       return { success: true, vote: voteInDb };
     }),
+  claimDaoMember: publicProcedure
+    .input(
+      z.object({
+        claimingUserId: z.string(),
+        daoMemberId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await prisma.daoMember.update({
+        where: { id: input.daoMemberId },
+        data: { userId: input.claimingUserId },
+      });
+    }),
+  checkClaim: publicProcedure
+    .input(
+      z.object({
+        claimingUserId: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      await prisma.user.findFirstOrThrow({
+        where: {
+          AND: [{ id: input.claimingUserId }, { daoMember: undefined }],
+        },
+      });
+    }),
+  getDaoMemberData: publicProcedure
+    .input(
+      z.object({
+        id: z.string().nullish(),
+      })
+    )
+    .query(async ({ input }) => {
+      input.id ? input.id : (input.id = "fail");
+      return await prisma.daoMember.findFirst({
+        select: {
+          name: true,
+          roles: true,
+          image_url: true,
+          biography: true,
+          contributions: true,
+        },
+        where: {
+          userId: input.id,
+        },
+      });
+    }),
 });
