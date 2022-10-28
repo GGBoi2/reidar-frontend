@@ -21,7 +21,7 @@ const ProfilePage: React.FC<{
 
   //Check to see if user has Claimed a Dao Member Already
   trpc.example.checkClaim.useQuery(
-    { id: session?.user?.id },
+    { id: session?.user?.id || "" }, //Hacky fix due to type error in checkClaim
     {
       enabled: Boolean(session?.user?.id),
       onSuccess(data) {
