@@ -1,56 +1,62 @@
+import { useState, FormEvent } from "react";
+import { AppRouterTypes, trpc } from "@/utils/trpc";
+
 import { prisma } from "../utils/prisma";
 import type { GetServerSideProps } from "next";
 import { AsyncReturnType } from "../utils/ts-bs";
-import { FormEvent, useState } from "react";
 import { useSession } from "next-auth/react";
 import Header from "src-components/Header";
 
-import { trpc } from "@/utils/trpc";
+type DaoMemberData = AppRouterTypes["example"]["getDaoMemberData"]["output"];
 
 const ProfilePage: React.FC<{
   member: MemberQueryResult;
-  user: { id: string }[];
 }> = (props) => {
   const { data: session } = useSession();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [hasUserClaimed, setHasUserClaimed] = useState(false);
-  const [tab, setTab] = useState("");
-  const [choice, setChoice] = useState("--- Choose ---");
-  const [daoMemberData, setDaoMemberData] = useState({
-    name: "",
-    roles: "",
-    image_url: "",
-    biography: "",
-    contributions: "",
-  });
+  const [hasClaimedMember, setHasClaimedMember] = useState(false);
+  const [daoMemberChoice, setDaoMemberChoice] = useState("");
+  const [daoMemberData, setDaoMemberData] = useState<DaoMemberData>(null);
 
-  const claim = trpc.example.claimDaoMember.useMutation(); //Rework this with new null variable thing
+  const [tab, setTab] = useState("DaoMember");
 
-  //Handle Dao Member Claim Form. Refresh page so it updates from DB changes
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    //event.preventDefault()
-    claim.mutate({
-      claimingUserId: session?.user?.id || "", //This only runs after page has rendered enough for a session.
-      daoMemberId: choice,
-    });
-  };
-
-  const checkClaim = (sessionId: string) => {
-    return props.user.some((currentUser) => {
-      return sessionId === currentUser.id;
-    });
-  };
-
-  const { data: queryData } = trpc.example.getDaoMemberData.useQuery(
-    { id: sessionId },
+  //Check to see if user has Claimed a Dao Member Already
+  trpc.example.checkClaim.useQuery(
+    { id: session?.user?.id },
     {
-      enabled: Boolean(sessionId),
+      enabled: Boolean(session?.user?.id),
       onSuccess(data) {
-        setDaoMemberData(data);
-        return data;
+        if (data) {
+          setHasClaimedMember(true);
+        }
       },
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
     }
   );
+
+  //Get Dao Member Data after the session.user.id exists
+  trpc.example.getDaoMemberData.useQuery(
+    { id: session?.user?.id },
+    {
+      enabled: Boolean(session?.user?.id),
+      onSuccess(data) {
+        setDaoMemberData(data);
+      },
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+  const claim = trpc.example.claimDaoMember.useMutation();
+  const handleDaoMemberClaim = async (event: FormEvent<HTMLFormElement>) => {
+    //event.preventDefault();
+    //Would like to figure out how to prevent page refresh but still refire getDaoMemberData & checkClaim queries
+    claim.mutate({
+      claimingUserId: session?.user?.id || "", //This won't ever be null
+      daoMemberId: daoMemberChoice,
+    });
+  };
 
   return (
     <>
@@ -64,9 +70,6 @@ const ProfilePage: React.FC<{
               }`}
               onClick={() => {
                 setTab("DaoMember");
-                setSessionId(session.user?.id || "");
-                setHasUserClaimed(checkClaim(session?.user?.id || ""));
-                setDaoMemberData(queryData);
               }}
             >
               Manage Dao Member
@@ -93,18 +96,18 @@ const ProfilePage: React.FC<{
               {tab === "DaoMember" && (
                 <>
                   {/*DaoMember has not been claimed on current logged in user */}
-                  {!hasUserClaimed && (
+                  {!hasClaimedMember && (
                     <div className="pt-8">
                       <div className="pb-4 text-xl">Claim your Dao Member</div>
                       <form
                         className="flex  items-center"
-                        onSubmit={(e) => handleSubmit(e)}
+                        onSubmit={(e) => handleDaoMemberClaim(e)}
                       >
                         <select
                           id="daoMemberSelect"
-                          value={choice}
+                          value={daoMemberChoice}
                           onChange={(e) => {
-                            setChoice(e.target.value);
+                            setDaoMemberChoice(e.target.value);
                           }}
                           name="daoMemberSelect"
                           className="text-black"
@@ -134,14 +137,17 @@ const ProfilePage: React.FC<{
                     </div>
                   )}
                   {/* Dao Member has been claimed on current logged in user */}
-                  {hasUserClaimed && (
-                    <div>
-                      <div>Edit Your Information</div>
+                  {hasClaimedMember && (
+                    <div className="flex w-full justify-center">
                       <form>
+                        <div className="flex justify-center p-2 text-xl">
+                          Edit Your Information
+                        </div>
                         <div>
                           <label>
                             Name
                             <input
+                              className="m-2 p-1 text-black"
                               type="text"
                               name="name"
                               placeholder={daoMemberData?.name}
@@ -150,6 +156,7 @@ const ProfilePage: React.FC<{
                           <label>
                             Image
                             <input
+                              className="m-2 p-1 text-black"
                               type="text"
                               name="image"
                               placeholder={daoMemberData?.image_url}
@@ -157,10 +164,11 @@ const ProfilePage: React.FC<{
                           </label>
                         </div>
 
-                        <div>
+                        <div className="flex flex-grow">
                           <label>
                             Roles
                             <input
+                              className="w-100% m-2  p-1 text-black"
                               type="text"
                               name="roles"
                               placeholder={daoMemberData?.roles}
@@ -171,6 +179,7 @@ const ProfilePage: React.FC<{
                           <label>
                             Biography
                             <input
+                              className="w-100% m-2  p-1 text-black"
                               type="text"
                               name="biography"
                               placeholder={daoMemberData?.biography}
@@ -181,13 +190,16 @@ const ProfilePage: React.FC<{
                           <label>
                             Contributions
                             <input
+                              className="w-100% m-2  p-1 text-black"
                               type="text"
                               name="contributions"
                               placeholder={daoMemberData?.contributions}
                             />
                           </label>
                         </div>
-                        <button type="submit">Submit</button>
+                        <button className="button" type="submit">
+                          Submit
+                        </button>
                       </form>
                     </div>
                   )}
@@ -210,23 +222,18 @@ const ProfilePage: React.FC<{
 
 export default ProfilePage;
 
-//Replace with SWR for Client Side instant rendering
-//Or just refresh page on data submit & lower revalidate time to make it work lmao
 export const getStaticProps: GetServerSideProps = async () => {
   const availableMembers = await getUnclaimedMembers();
-  const availableUsers = await getClaimedUsers();
-
   return {
     props: {
       member: availableMembers,
-      user: availableUsers,
     },
     revalidate: 1,
   };
 };
 
+type MemberQueryResult = AsyncReturnType<typeof getUnclaimedMembers>;
 const getUnclaimedMembers = async () => {
-  //Optional: Convert to tRPC Query to not directly access prisma
   return await prisma.daoMember.findMany({
     select: {
       id: true,
@@ -237,18 +244,3 @@ const getUnclaimedMembers = async () => {
     },
   });
 };
-
-const getClaimedUsers = async () => {
-  return await prisma.user.findMany({
-    select: {
-      id: true,
-    },
-    where: {
-      NOT: {
-        daoMember: null,
-      },
-    },
-  });
-};
-
-type MemberQueryResult = AsyncReturnType<typeof getUnclaimedMembers>;

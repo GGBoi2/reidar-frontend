@@ -55,13 +55,14 @@ export const exampleRouter = router({
   checkClaim: publicProcedure
     .input(
       z.object({
-        claimingUserId: z.string(),
+        id: z.string().nullish(),
       })
     )
     .query(async ({ input }) => {
-      await prisma.user.findFirstOrThrow({
+      return await prisma.user.findFirst({
         where: {
-          AND: [{ id: input.claimingUserId }, { daoMember: undefined }],
+          AND: [{ id: input.id }], //Weird TS error. Not sure what StringFilter is
+          NOT: { daoMember: null },
         },
       });
     }),
@@ -72,7 +73,6 @@ export const exampleRouter = router({
       })
     )
     .query(async ({ input }) => {
-      input.id ? input.id : (input.id = "fail");
       return await prisma.daoMember.findFirst({
         select: {
           name: true,
