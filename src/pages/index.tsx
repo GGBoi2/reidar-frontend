@@ -56,8 +56,8 @@ const Home: NextPage = () => {
 
       <Header />
 
-      <div className="relative flex h-screen w-screen flex-col items-center justify-center">
-        <div className="absolute top-0 mt-24 text-center text-2xl">
+      <div className="relative flex  w-screen flex-col items-center justify-center">
+        <div className=" top-0 mt-8 mb-4 text-center text-2xl">
           Choose a Dao Member
         </div>
 
