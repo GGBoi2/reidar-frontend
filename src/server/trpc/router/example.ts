@@ -61,7 +61,7 @@ export const exampleRouter = router({
     .query(async ({ input }) => {
       return await prisma.user.findFirst({
         where: {
-          id: input.id, //Weird TS error. Not sure what StringFilter is
+          id: input.id, //Need Hacky fix on account.tsx because weird TS error. Not sure what StringFilter is
           NOT: { daoMember: null },
         },
       });

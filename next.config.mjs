@@ -28,6 +28,11 @@ export default defineNextConfig({
   },
   images: {
     loader: "default",
-    domains: ["raw.githubusercontent.com", "i.ibb.co", "ibb.co"],
+    domains: [
+      "raw.githubusercontent.com",
+      "i.ibb.co",
+      "ibb.co",
+      "cdn.discordapp.com",
+    ],
   },
 });

@@ -7,6 +7,8 @@ import { AsyncReturnType } from "../utils/ts-bs";
 import { useSession } from "next-auth/react";
 import Header from "src-components/Header";
 
+//To Do - Match DaoMember data with discord data
+
 type DaoMemberData = AppRouterTypes["example"]["getDaoMemberData"]["output"];
 
 const ProfilePage: React.FC<{
@@ -16,14 +18,13 @@ const ProfilePage: React.FC<{
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
   const [daoMemberChoice, setDaoMemberChoice] = useState("");
   const [daoMemberData, setDaoMemberData] = useState<DaoMemberData>(null);
-
   const [tab, setTab] = useState("DaoMember");
 
   //Check to see if user has Claimed a Dao Member Already
   trpc.example.checkClaim.useQuery(
-    { id: session?.user?.id || "" }, //Hacky fix due to type error in checkClaim
+    { id: session?.user.id || "" }, //Hacky fix due to type error in checkClaim
     {
-      enabled: Boolean(session?.user?.id),
+      enabled: Boolean(session?.user.id),
       onSuccess(data) {
         if (data) {
           setHasClaimedMember(true);
@@ -37,10 +38,11 @@ const ProfilePage: React.FC<{
 
   //Get Dao Member Data after the session.user.id exists
   trpc.example.getDaoMemberData.useQuery(
-    { id: session?.user?.id },
+    { id: session?.user.id },
     {
-      enabled: Boolean(session?.user?.id),
+      enabled: Boolean(session?.user.id),
       onSuccess(data) {
+        console.log(data);
         setDaoMemberData(data);
       },
       refetchInterval: false,
@@ -53,7 +55,7 @@ const ProfilePage: React.FC<{
     //event.preventDefault();
     //Would like to figure out how to prevent page refresh but still refire getDaoMemberData & checkClaim queries
     claim.mutate({
-      claimingUserId: session?.user?.id || "", //This won't ever be null
+      claimingUserId: session?.user.id || "", //This won't ever be null
       daoMemberId: daoMemberChoice,
     });
   };
@@ -207,7 +209,13 @@ const ProfilePage: React.FC<{
               )}
             </div>
 
-            <div>{tab === "TaskBoard" && <div>If tab === Task Board</div>}</div>
+            <div>
+              {tab === "TaskBoard" && (
+                <>
+                  <div>If tab === Task Board</div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

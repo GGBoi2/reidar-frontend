@@ -36,7 +36,7 @@ function Header() {
         {!session && (
           <button
             className=" cursor-pointer border border-white p-1"
-            onClick={() => signIn()}
+            onClick={() => signIn("discord")}
           >
             Sign In
           </button>

@@ -76,6 +76,7 @@ model DaoMember {
   votesAgainst  Vote[]  @relation("Vote_votedAgainst")
   user          User?   @relation(fields: [userId], references: [id])
   userId        String? @unique
+  discordId     String? @unique
 }
 
 model Vote {
@@ -88,4 +89,12 @@ model Vote {
 
   @@index([votedForId])
   @@index([votedAgainstId])
+}
+
+model tempDaoMember {
+  id        String   @id
+  name      String
+  roles     String
+  image_url String
+  claimed   Boolean?
 }
