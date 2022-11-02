@@ -42,7 +42,6 @@ const ProfilePage: React.FC<{
     {
       enabled: Boolean(session?.user.id),
       onSuccess(data) {
-        console.log(data);
         setDaoMemberData(data);
       },
       refetchInterval: false,
@@ -236,7 +235,7 @@ export const getStaticProps: GetServerSideProps = async () => {
     props: {
       member: availableMembers,
     },
-    revalidate: 1,
+    revalidate: 60,
   };
 };
 
@@ -249,6 +248,7 @@ const getUnclaimedMembers = async () => {
     },
     where: {
       userId: null,
+      discordId: null,
     },
   });
 };
