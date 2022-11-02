@@ -14,12 +14,69 @@ export const authOptions: NextAuthOptions = {
   // Include user.id on session
   callbacks: {
     async jwt({ token, account, profile, user, isNewUser }) {
-      //console.log(isNewUser); //Only defined on first render. Initiates after signIn so can't use in signIn flow :(
       if (account && profile && user) {
         token.profile = profile;
         token.refreshToken = account.refresh_token;
         token.accessToken = account.access_token;
         token.id = user.id;
+      }
+
+      //Check to see if new account is eligible to claim a daoMember
+      if (isNewUser) {
+        const canClaim = await prisma.daoMember.findFirst({
+          where: {
+            discordId: account?.providerAccountId,
+            userId: null,
+          },
+        });
+
+        //Take user id & assign to daoMember that has same discordId
+        if (canClaim) {
+          await prisma.daoMember.update({
+            where: {
+              discordId: account?.providerAccountId,
+            },
+            data: {
+              name: profile?.username,
+              userId: user?.id,
+              image_url: `https://cdn.discordapp.com/avatars/${profile?.id}/${profile?.avatar}.jpg?size=256`,
+            },
+          });
+        }
+      }
+
+      //Update username, image, or email if has changed on discord
+      if (
+        !isNewUser &&
+        (token.name !== token.profile?.username ||
+          token.picture !==
+            `https://cdn.discordapp.com/avatars/${token.profile?.id}/${token.profile?.avatar}.jpg?size=256` ||
+          token.email !== token.profile?.email)
+      ) {
+        //Ensure that profile & user exists
+        if (token) {
+          //Update Prisma user profile
+          await prisma.user.update({
+            where: {
+              id: token.sub,
+            },
+            data: {
+              name: token.profile?.username,
+              image: `https://cdn.discordapp.com/avatars/${token.profile?.id}/${token.profile?.avatar}.jpg?size=256`,
+              email: token.profile?.email,
+            },
+          });
+          //Update daoMember Profile
+          await prisma.daoMember.update({
+            where: {
+              userId: token.sub,
+            },
+            data: {
+              name: token.profile?.username,
+              image_url: `https://cdn.discordapp.com/avatars/${token.profile?.id}/${token.profile?.avatar}.jpg?size=256`,
+            },
+          });
+        }
       }
 
       return Promise.resolve(token);
@@ -34,67 +91,6 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
-    async signIn({ user, account, profile }) {
-      //ToDo: filter sign in based on if isNewUser flag is triggered in jwt
-      //Would love to be able to pass isNewUser state into signIn, but JWT triggered after sign in flow. Would likely need to be cookies of some kind.
-      //Improve this flow in the future, but good enough for now
-
-      //Check to see if account has claimed a daoMember already
-      if (account?.providerAccountId) {
-        const canClaim = await prisma.daoMember.findFirst({
-          where: {
-            discordId: account.providerAccountId,
-            userId: null,
-          },
-        });
-
-        //Take user id & assign to daoMember that has same discordId
-        if (canClaim) {
-          await prisma.daoMember.update({
-            where: {
-              discordId: account.providerAccountId,
-            },
-            data: {
-              name: profile?.username,
-              userId: user.id,
-              image_url: `https://cdn.discordapp.com/avatars/${profile?.id}/${profile?.avatar}.jpg?size=256`,
-            },
-          });
-        }
-      }
-
-      //Update username, image, or email if has changed on discord
-      if (
-        user.name !== profile?.username ||
-        user.image !==
-          `https://cdn.discordapp.com/avatars/${profile?.id}/${profile?.avatar}.jpg?size=256` ||
-        user.email !== profile?.email
-      ) {
-        //Update Prisma user profile
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            name: profile?.username,
-            image: `https://cdn.discordapp.com/avatars/${profile?.id}/${profile?.avatar}.jpg?size=256`,
-            email: profile?.email,
-          },
-        });
-        //Update daoMember Profile
-        await prisma.daoMember.update({
-          where: {
-            userId: user.id,
-          },
-          data: {
-            name: profile?.username,
-            image_url: `https://cdn.discordapp.com/avatars/${profile?.id}/${profile?.avatar}.jpg?size=256`,
-          },
-        });
-      }
-
-      return true;
-    },
   },
 
   // Configure one or more authentication providers
@@ -106,7 +102,6 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: { scope: "identify guilds.members.read" },
       },
-
       profile(profile) {
         return {
           id: profile.id,

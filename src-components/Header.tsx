@@ -3,6 +3,7 @@ import Link from "next/link";
 
 function Header() {
   const { data: session } = useSession();
+
   return (
     <div className=" w-full pb-2 text-center text-xl">
       <div className="p-2">
