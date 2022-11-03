@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
       authorization: {
-        params: { scope: "identify guilds.members.read" },
+        params: { scope: "identify" },
       },
       profile(profile) {
         return {

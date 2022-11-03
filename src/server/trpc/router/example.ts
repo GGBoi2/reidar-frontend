@@ -86,4 +86,26 @@ export const exampleRouter = router({
         },
       });
     }),
+  updateDaoMember: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        name: z.string(),
+        roles: z.string(),
+        image_url: z.string(),
+        biography: z.string(),
+        contributions: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await prisma.daoMember.update({
+        where: {
+          userId: input.userId,
+        },
+        data: {
+          biography: input.biography,
+          contributions: input.contributions,
+        },
+      });
+    }),
 });

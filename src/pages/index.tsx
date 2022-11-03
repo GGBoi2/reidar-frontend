@@ -113,8 +113,14 @@ const MemberCard: React.FC<{
       <div className="mt-1 text-center text-xl capitalize">
         {props.member.name}
       </div>
+      <div className="">
+        {/*   Add Text Wrap */}
+        Roles: {`${props.member.roles ? props.member.roles : "No Roles"}`}
+      </div>
       <div className="my-4 h-full w-96 text-justify">
-        {props.member.biography
+        {props.member.contributions
+          ? props.member.contributions
+          : props.member.biography
           ? props.member.biography
           : "No Biography Submitted"}
       </div>

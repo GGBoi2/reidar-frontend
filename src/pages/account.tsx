@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import React, { useState, FormEvent } from "react";
 import { AppRouterTypes, trpc } from "@/utils/trpc";
 
 import { prisma } from "../utils/prisma";
@@ -6,6 +6,7 @@ import type { GetServerSideProps } from "next";
 import { AsyncReturnType } from "../utils/ts-bs";
 import { useSession } from "next-auth/react";
 import Header from "src-components/Header";
+import Image from "next/image";
 
 //To Do - Match DaoMember data with discord data
 
@@ -19,6 +20,24 @@ const ProfilePage: React.FC<{
   const [daoMemberChoice, setDaoMemberChoice] = useState("");
   const [daoMemberData, setDaoMemberData] = useState<DaoMemberData>(null);
   const [tab, setTab] = useState("DaoMember");
+
+  //Ensure form data is kept current in Manage Dao Member Tab
+  const inputChangeHander = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    //Ensure no typescript conflict
+    if (daoMemberData) {
+      setDaoMemberData({ ...daoMemberData, [name]: value });
+    }
+  };
+
+  //Update Dao Data from Manage Dao Member Tab
+  const update = trpc.example.updateDaoMember.useMutation();
+  const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (session?.user.id && daoMemberData) {
+      update.mutate({ userId: session.user.id, ...daoMemberData });
+    }
+  };
 
   //Check to see if user has Claimed a Dao Member Already
   trpc.example.checkClaim.useQuery(
@@ -64,7 +83,7 @@ const ProfilePage: React.FC<{
       <Header />
       {session && (
         <div className="flex-box border-w mx-auto flex w-2/3 items-start justify-center border">
-          <div className="flex h-64 w-1/5 flex-col  border-r border-white">
+          <div className="flex h-64 w-1/5 flex-col  ">
             <div
               className={`flex cursor-pointer justify-center border-b border-white p-2 ${
                 tab === "DaoMember" ? "bg-white text-black" : ""
@@ -85,7 +104,7 @@ const ProfilePage: React.FC<{
             </div>
           </div>
 
-          <div className="flex grow flex-col items-center">
+          <div className="flex grow flex-col items-center  border-l border-white">
             <div>
               {tab === "" && (
                 <div className="pt-8 text-2xl">
@@ -93,7 +112,7 @@ const ProfilePage: React.FC<{
                 </div>
               )}
             </div>
-            <div>
+            <div className="w-full p-4">
               {tab === "DaoMember" && (
                 <>
                   {/*DaoMember has not been claimed on current logged in user */}
@@ -138,66 +157,60 @@ const ProfilePage: React.FC<{
                     </div>
                   )}
                   {/* Dao Member has been claimed on current logged in user */}
-                  {hasClaimedMember && (
-                    <div className="flex w-full justify-center">
-                      <form>
+                  {hasClaimedMember && daoMemberData && (
+                    <div className=" flex flex-col items-center">
+                      <div className="">
+                        <Image
+                          src={daoMemberData.image_url}
+                          alt="profile pic"
+                          width={128}
+                          height={128}
+                          objectFit="contain"
+                        />
+                      </div>
+                      <div className="flex items-center justify-center">
+                        Name:
+                        <span className="text-l pl-1">
+                          {daoMemberData.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        Roles:
+                        <span className="text-l pl-1">
+                          {daoMemberData.roles}
+                        </span>
+                      </div>
+                      <form className="w-full" onSubmit={onSubmitHandler}>
                         <div className="flex justify-center p-2 text-xl">
                           Edit Your Information
                         </div>
-                        <div>
+
+                        <div className="w-100 flex flex-grow flex-col">
                           <label>
-                            Name
-                            <input
-                              className="m-2 p-1 text-black"
-                              type="text"
-                              name="name"
-                              placeholder={daoMemberData?.name}
-                            />
+                            Biography - This will appear in the Dao Member Bio
+                            page
                           </label>
+                          <textarea
+                            className="m-2  flex-grow p-1 text-black"
+                            rows={3}
+                            name="biography"
+                            placeholder={daoMemberData.biography}
+                            onChange={(e) => inputChangeHander(e)}
+                          />
+                        </div>
+                        <div className="w-100 flex flex-grow flex-col">
                           <label>
-                            Image
-                            <input
-                              className="m-2 p-1 text-black"
-                              type="text"
-                              name="image"
-                              placeholder={daoMemberData?.image_url}
-                            />
+                            Contributions - This will appear in the game
                           </label>
+                          <textarea
+                            className="m-2 flex-grow  p-1 text-black"
+                            rows={3}
+                            name="contributions"
+                            placeholder={daoMemberData.contributions}
+                            onChange={(e) => inputChangeHander(e)}
+                          />
                         </div>
 
-                        <div className="flex flex-grow">
-                          <label>
-                            Roles
-                            <input
-                              className="w-100% m-2  p-1 text-black"
-                              type="text"
-                              name="roles"
-                              placeholder={daoMemberData?.roles}
-                            />
-                          </label>
-                        </div>
-                        <div>
-                          <label>
-                            Biography
-                            <input
-                              className="w-100% m-2  p-1 text-black"
-                              type="text"
-                              name="biography"
-                              placeholder={daoMemberData?.biography}
-                            />
-                          </label>
-                        </div>
-                        <div>
-                          <label>
-                            Contributions
-                            <input
-                              className="w-100% m-2  p-1 text-black"
-                              type="text"
-                              name="contributions"
-                              placeholder={daoMemberData?.contributions}
-                            />
-                          </label>
-                        </div>
                         <button className="button" type="submit">
                           Submit
                         </button>
