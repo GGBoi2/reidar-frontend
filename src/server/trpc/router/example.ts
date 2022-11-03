@@ -4,26 +4,55 @@ import { prisma } from "@/utils/prisma";
 import { getRandomMember } from "@/utils/getRandomMember";
 
 export const exampleRouter = router({
-  getTwoMembers: publicProcedure.query(async () => {
-    const allIds = await prisma.daoMember.findMany({
-      select: {
-        id: true,
-      },
-    });
+  getTwoMembers: publicProcedure
+    .input(
+      z.object({
+        selfId: z.string().nullish(),
+      })
+    )
+    .query(async ({ input }) => {
+      const allIds = await prisma.daoMember.findMany({
+        where: {
+          //Don't fetch your own dao member. Can't vote for self
+          OR: [
+            {
+              userId: null,
+            },
+            {
+              //Ensure that everyone is gathered in no session instances.
+              //But still can't get self if logged in
+              NOT: [{ userId: input.selfId ? input.selfId : "dummy string" }],
+            },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      });
 
-    //Pick 2 random, unique ids
-    //Change this to prevent self-showing up
-    const firstId = getRandomMember(allIds);
-    const secondId = getRandomMember(allIds, firstId);
+      //Pick 2 random, unique ids
+      const firstId = getRandomMember(allIds);
+      const secondId = getRandomMember(allIds, firstId);
 
-    const BothMembers = await prisma.daoMember.findMany({
-      where: { id: { in: [firstId, secondId] } },
-    });
+      const BothMembers = await prisma.daoMember.findMany({
+        where: {
+          id: {
+            in: [firstId, secondId],
+          },
+        },
+      });
 
-    if (BothMembers.length !== 2) throw new Error("Failed to find two Members");
-    //Change this to randomize first or second
-    return { firstMember: BothMembers[0], secondMember: BothMembers[1] };
-  }),
+      if (BothMembers.length !== 2)
+        throw new Error("Failed to find two Members");
+      //Change this to randomize first or second
+      const randomNumber = Math.random();
+
+      if (randomNumber > 0.5) {
+        return { firstMember: BothMembers[0], secondMember: BothMembers[1] };
+      } else {
+        return { firstMember: BothMembers[1], secondMember: BothMembers[0] };
+      }
+    }),
   voteForMember: publicProcedure
     .input(
       z.object({

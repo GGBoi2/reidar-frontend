@@ -6,11 +6,15 @@ import Image from "next/image";
 
 import Header from "src-components/Header";
 import MemberCard from "src-components/MemberCard";
+import { useSession } from "next-auth/react";
 
 const Home: NextPage = () => {
   //Fetch 2 Members
+  const { data: session } = useSession();
+
   const { data: memberPair, refetch } = trpc.example.getTwoMembers.useQuery(
-    undefined,
+    //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
+    { selfId: session?.user.id },
     {
       refetchInterval: false,
       refetchOnReconnect: false,
