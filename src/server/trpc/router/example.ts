@@ -12,7 +12,7 @@ export const exampleRouter = router({
     });
 
     //Pick 2 random, unique ids
-
+    //Change this to prevent self-showing up
     const firstId = getRandomMember(allIds);
     const secondId = getRandomMember(allIds, firstId);
 
@@ -21,6 +21,7 @@ export const exampleRouter = router({
     });
 
     if (BothMembers.length !== 2) throw new Error("Failed to find two Members");
+    //Change this to randomize first or second
     return { firstMember: BothMembers[0], secondMember: BothMembers[1] };
   }),
   voteForMember: publicProcedure
@@ -108,4 +109,32 @@ export const exampleRouter = router({
         },
       });
     }),
+  getMembersInOrder: publicProcedure.query(async () => {
+    return await prisma.daoMember.findMany({
+      orderBy: { votesFor: { _count: "desc" } },
+      select: {
+        id: true,
+        name: true,
+        image_url: true,
+        _count: {
+          select: {
+            votesFor: true,
+            votesAgainst: true,
+          },
+        },
+      },
+    });
+  }),
+  getUnclaimedMembers: publicProcedure.query(async () => {
+    return await prisma.daoMember.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      where: {
+        userId: null,
+        discordId: null,
+      },
+    });
+  }),
 });

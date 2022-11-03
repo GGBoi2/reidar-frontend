@@ -1,12 +1,15 @@
 import { prisma } from "@/utils/prisma";
 import type { GetServerSideProps } from "next";
-import { AsyncReturnType } from "@/utils/ts-bs";
-import Image from "next/image";
+
+import { AppRouterTypes } from "@/utils/trpc";
 
 import Header from "src-components/Header";
+import MemberRow from "src-components/MemberRow";
 
 const getMembersInOrder = async () => {
-  //Optional: Convert to tRPC Query to not directly access prisma
+  //This is type defined in router/example.ts to match this. Should eventually use
+  //ssg-helpers from trpc v10, but looks complicated to figure out and easier to just
+  //manually keep these linked for now
   return await prisma.daoMember.findMany({
     orderBy: { votesFor: { _count: "desc" } },
     select: {
@@ -23,8 +26,12 @@ const getMembersInOrder = async () => {
   });
 };
 
-type MemberQueryResult = AsyncReturnType<typeof getMembersInOrder>;
+//Type matching from router/example.ts
+//Update if getMembersInOrder changes
+type MemberQueryResult =
+  AppRouterTypes["example"]["getMembersInOrder"]["output"];
 
+//Score Logic for results page
 const generateRawScore = (member: MemberQueryResult[number]) => {
   const { votesFor, votesAgainst } = member._count;
   const Score = votesFor - votesAgainst;
@@ -66,39 +73,9 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
 
 export default ResultsPage;
 
-//Generate Individual Ranking Rows
-const MemberRow: React.FC<{
-  member: MemberQueryResult[number];
-  rank: number;
-  score: number;
-}> = ({ member, rank, score }) => {
-  return (
-    <>
-      <div className="flex items-center justify-between border-b p-2">
-        <div className="flex items-center">
-          <span className="p-1 pr-4 text-2xl text-pink-500 ">{rank}</span>
-          {member.image_url ? (
-            <Image
-              width={64}
-              height={64}
-              layout="fixed"
-              src={`${member.image_url}`}
-              alt=""
-            />
-          ) : (
-            <span>No PFP</span>
-          )}
-        </div>
-        <div className="mr-20 flex flex-grow justify-center text-left text-xl  capitalize ">
-          {member.name}
-        </div>
-        <div className="text-l  pr-4">{score}</div>
-      </div>
-    </>
-  );
-};
-
+//Fetch all members server side
 export const getStaticProps: GetServerSideProps = async () => {
   const memberOrdered = await getMembersInOrder();
+
   return { props: { member: memberOrdered }, revalidate: 60 };
 };

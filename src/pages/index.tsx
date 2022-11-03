@@ -3,10 +3,9 @@ import Head from "next/head";
 
 import { trpc } from "../utils/trpc";
 import Image from "next/image";
-import type { GetInferenceHelpers } from "@trpc/server";
-import type { AppRouter } from "@/server/trpc/router/_app";
 
 import Header from "src-components/Header";
+import MemberCard from "src-components/MemberCard";
 
 const Home: NextPage = () => {
   //Fetch 2 Members
@@ -70,7 +69,7 @@ const Home: NextPage = () => {
               />
               <div className="p-16 text-2xl">Vs</div>
               <MemberCard
-                member={memberPair?.secondMember}
+                member={memberPair.secondMember}
                 vote={() => voteForMember(memberPair.secondMember.id)}
               />
             </div>
@@ -85,48 +84,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
-//Component for Creating MemberCard in The Game
-type RouterInput = GetInferenceHelpers<AppRouter>;
-type MemberFromSever =
-  RouterInput["example"]["getTwoMembers"]["output"]["firstMember"];
-
-const MemberCard: React.FC<{
-  member: MemberFromSever;
-  vote: () => void;
-}> = (props) => {
-  return (
-    <div className="relative flex flex-col items-center">
-      {props.member.image_url ? (
-        <Image
-          width={256}
-          height={256}
-          layout="fixed"
-          src={`${props.member.image_url}`}
-          alt=""
-        />
-      ) : (
-        <div className=" h-64 min-h-full w-64">
-          <p>No Profile Picture Submitted or Page Not Found</p>
-        </div>
-      )}
-      <div className="mt-1 text-center text-xl capitalize">
-        {props.member.name}
-      </div>
-      <div className="">
-        {/*   Add Text Wrap */}
-        Roles: {`${props.member.roles ? props.member.roles : "No Roles"}`}
-      </div>
-      <div className="my-4 h-full w-96 text-justify">
-        {props.member.contributions
-          ? props.member.contributions
-          : props.member.biography
-          ? props.member.biography
-          : "No Biography Submitted"}
-      </div>
-      <button className="button  " onClick={() => props.vote()}>
-        Vote
-      </button>
-    </div>
-  );
-};
