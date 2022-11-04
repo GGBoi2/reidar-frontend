@@ -43,10 +43,14 @@ export const exampleRouter = router({
     )
     .query(async ({ input }) => {
       //Technically nullish, but query won't run till input data exists on frontend
-      if (!input.allIds) return;
+      //Need this for typescript not liking potentially null values
+      let firstId = "";
+      let secondId = "";
+      if (input.allIds) {
+        firstId = getRandomMember(input.allIds);
+        secondId = getRandomMember(input.allIds, firstId);
+      }
       //Pick 2 random, unique ids
-      const firstId = getRandomMember(input.allIds);
-      const secondId = getRandomMember(input.allIds, firstId);
 
       const BothMembers = await prisma.daoMember.findMany({
         where: {
@@ -61,11 +65,9 @@ export const exampleRouter = router({
       //Change this to randomize first or second
       const randomNumber = Math.random();
 
-      if (randomNumber > 0.5) {
-        return { firstMember: BothMembers[0], secondMember: BothMembers[1] };
-      } else {
-        return { firstMember: BothMembers[1], secondMember: BothMembers[0] };
-      }
+      return randomNumber > 0.5
+        ? { firstMember: BothMembers[0], secondMember: BothMembers[1] }
+        : { firstMember: BothMembers[1], secondMember: BothMembers[0] };
     }),
   voteForMember: publicProcedure
     .input(

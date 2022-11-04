@@ -3,11 +3,11 @@ import type { AppRouter } from "@/server/trpc/router/_app";
 import Image from "next/image";
 
 type RouterInput = GetInferenceHelpers<AppRouter>;
-type MemberFromSever =
+type MemberFromServer =
   RouterInput["example"]["getTwoMembers"]["output"]["firstMember"];
 
 const MemberCard: React.FC<{
-  member: MemberFromSever;
+  member: MemberFromServer;
   vote: () => void;
 }> = (props) => {
   return (
