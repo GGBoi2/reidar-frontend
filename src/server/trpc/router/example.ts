@@ -4,14 +4,14 @@ import { prisma } from "@/utils/prisma";
 import { getRandomMember } from "@/utils/getRandomMember";
 
 export const exampleRouter = router({
-  getTwoMembers: publicProcedure
+  getDaoMemberIds: publicProcedure
     .input(
       z.object({
         selfId: z.string().nullish(),
       })
     )
     .query(async ({ input }) => {
-      const allIds = await prisma.daoMember.findMany({
+      return await prisma.daoMember.findMany({
         where: {
           //Don't fetch your own dao member. Can't vote for self
           OR: [
@@ -29,10 +29,24 @@ export const exampleRouter = router({
           id: true,
         },
       });
-
+    }),
+  getTwoMembers: publicProcedure
+    .input(
+      z.record(
+        z
+          .object({
+            id: z.string(),
+          })
+          .array()
+          .nullish()
+      )
+    )
+    .query(async ({ input }) => {
+      //Technically nullish, but query won't run till input data exists on frontend
+      if (!input.allIds) return;
       //Pick 2 random, unique ids
-      const firstId = getRandomMember(allIds);
-      const secondId = getRandomMember(allIds, firstId);
+      const firstId = getRandomMember(input.allIds);
+      const secondId = getRandomMember(input.allIds, firstId);
 
       const BothMembers = await prisma.daoMember.findMany({
         where: {
@@ -58,6 +72,7 @@ export const exampleRouter = router({
       z.object({
         votedFor: z.string(),
         votedAgainst: z.string(),
+        voterId: z.string().nullish(),
       })
     )
     .mutation(async ({ input }) => {
@@ -67,6 +82,17 @@ export const exampleRouter = router({
           votedAgainstId: input.votedAgainst,
         },
       });
+
+      if (input.voterId) {
+        await prisma.daoMember.update({
+          where: {
+            userId: input.voterId,
+          },
+          data: {
+            votesCast: { increment: 1 },
+          },
+        });
+      }
       return { success: true, vote: voteInDb };
     }),
   claimDaoMember: publicProcedure

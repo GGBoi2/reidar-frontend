@@ -12,10 +12,22 @@ const Home: NextPage = () => {
   //Fetch 2 Members
   const { data: session } = useSession();
 
-  const { data: memberPair, refetch } = trpc.example.getTwoMembers.useQuery(
-    //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
+  //Fetch all Ids once for the whole session rather than on each vote
+  const { data: allDaoMemberIds } = trpc.example.getDaoMemberIds.useQuery(
     { selfId: session?.user.id },
     {
+      enabled: Boolean(session?.user.id),
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const { data: memberPair, refetch } = trpc.example.getTwoMembers.useQuery(
+    //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
+    { allIds: allDaoMemberIds },
+    {
+      enabled: Boolean(allDaoMemberIds),
       refetchInterval: false,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
@@ -33,12 +45,14 @@ const Home: NextPage = () => {
       voteMutation.mutate({
         votedFor: memberPair.firstMember.id,
         votedAgainst: memberPair.secondMember.id,
+        voterId: session?.user.id,
       });
     } else {
       //Vote for second option
       voteMutation.mutate({
         votedFor: memberPair.secondMember.id,
         votedAgainst: memberPair.firstMember.id,
+        voterId: session?.user.id,
       });
     }
 
@@ -61,7 +75,8 @@ const Home: NextPage = () => {
 
       <div className="relative flex  w-screen flex-col items-center justify-center">
         <div className=" top-0 mt-8 mb-4 text-center text-2xl">
-          Choose a Dao Member
+          <div>Choose a Dao Member</div>
+          {/* <div>You have cast (add feature soon) votes</div> */}
         </div>
 
         <div>
