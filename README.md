@@ -25,3 +25,4 @@ DISCORD_CLIENT_SECRET=
 Once everything is set up correctly, type ```npm run dev``` to spin up a test server on NEXTAUTH_URL. The page will auto refresh on save.
 
 To ensure that you don't accidently delete the main database, I will give you access to a copy of the database that I don't care what happens to. :)
+There's only a small amount of data because I had to manually copy it over. Should be enough to play with css stuff.
