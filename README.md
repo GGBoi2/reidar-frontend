@@ -2,6 +2,8 @@
 
 Clone the github repo
 
+Next navigate into the downloaded file with ```cd reidar-frontend```
+
 Using npm, run the following command
 ``` npm install ```
 
@@ -17,7 +19,7 @@ NEXTAUTH_URL=http://localhost:3000
 
 #Next Auth Discord Provider
 DISCORD_CLIENT_ID=
-DISCORD+CLIENT_SECRET=
+DISCORD_CLIENT_SECRET=
 ```
 
 Once everything is set up correctly, type ```npm run dev``` to spin up a test server on NEXTAUTH_URL. The page will auto refresh on save.
