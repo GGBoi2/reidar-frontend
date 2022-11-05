@@ -1,27 +1,30 @@
-# Create T3 App
+# Getting Started
 
-This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+Clone the github repo
 
-## What's next? How do I make an app with this?
+Next navigate into the downloaded file with ```cd reidar-frontend```
 
-We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
+Using npm, run the following command
+``` npm install ```
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Once installed, create a .env file. Ensure that the .env filetype is ignored in the .gitignore file so that the variables aren't shared publically. There are 6 variables you need to enter for the app to work. Message GGboi.eth#9737 for the missing .env variables.
+```
+#Prisma
+DATABASE_URL=
+SHADOW_URL=
 
-- [Next-Auth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [TailwindCSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+#Next Auth
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
 
-We also [roll our own docs](https://beta.create.t3.gg) with some summary information and links to the respective documentation.
+#Next Auth Discord Provider
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+```
 
-Also checkout these awesome tutorials on `create-t3-app`.
+Once everything is set up correctly, type ```npm run dev``` to spin up a test server on NEXTAUTH_URL. The page will auto refresh on save.
 
-- [Build a Blog With the T3 Stack - tRPC, TypeScript, Next.js, Prisma & Zod](https://www.youtube.com/watch?v=syEWlxVFUrY)
-- [Build a Live Chat Application with the T3 Stack - TypeScript, Tailwind, tRPC](https://www.youtube.com/watch?v=dXRRY37MPuk)
-- [Build a full stack app with create-t3-app](https://www.nexxel.dev/blog/ct3a-guestbook)
-- [A first look at create-t3-app](https://dev.to/ajcwebdev/a-first-look-at-create-t3-app-1i8f)
+To ensure that you don't accidently delete the main database, I will give you access to a copy of the database that I don't care what happens to. :)
+There's only a small amount of data because I had to manually copy it over. Should be enough to play with css stuff.
 
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://beta.create.t3.gg/en/deployment/vercel) and [Docker](https://beta.create.t3.gg/en/deployment/docker) for more information.
+You will need to login to view edits to "The Game" with the same discord account as in ReidarDao. Let me know if anything doesn't work
