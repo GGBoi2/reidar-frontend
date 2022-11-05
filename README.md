@@ -7,7 +7,7 @@ Next navigate into the downloaded file with ```cd reidar-frontend```
 Using npm, run the following command
 ``` npm install ```
 
-Once installed, create a .env file. Ensure that the .env filetype is ignored in the .gitignore file so that the variables aren't shared publically. There are 6 variables you need to enter for the app to work. Message GGboi.eth#9737 for the missing .env variables.
+Once installed, edit the .env-example file. You will need to message GGboi.eth#9737 to get the missing variables. Rename the file to .env after you have added the variables so that the they aren't shared publically. There are 6 variables you need to enter for the app to work.
 ```
 #Prisma
 DATABASE_URL=
@@ -24,7 +24,7 @@ DISCORD_CLIENT_SECRET=
 
 Once everything is set up correctly, type ```npm run dev``` to spin up a test server on NEXTAUTH_URL. The page will auto refresh on save.
 
-To ensure that you don't accidently delete the main database, I will give you access to a copy of the database that I don't care what happens to. :)
-There's only a small amount of data because I had to manually copy it over. Should be enough to play with css stuff.
+To ensure that you don't accidently delete the main database, we will be working with the development databases on planetscale. :)
+The data matches what is in our production database.
 
 You will need to login to view edits to "The Game" with the same discord account as in ReidarDao. Let me know if anything doesn't work
