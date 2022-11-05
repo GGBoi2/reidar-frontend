@@ -1,5 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useState } from "react";
 
 import { trpc } from "../utils/trpc";
 import Image from "next/image";
@@ -11,10 +12,11 @@ import { useSession } from "next-auth/react";
 const Home: NextPage = () => {
   //Fetch 2 Members
   const { data: session } = useSession();
+  const [hasClaimedMember, setHasClaimedMember] = useState(false);
 
   //Fetch all Ids once for the whole session rather than on each vote
   const { data: allDaoMemberIds } = trpc.example.getDaoMemberIds.useQuery(
-    { selfId: session?.user.id },
+    { selfId: session?.user.id || "" }, //Will not be null because query won't fire till it exists
     {
       enabled: Boolean(session?.user.id),
       refetchInterval: false,
@@ -27,7 +29,7 @@ const Home: NextPage = () => {
     //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
     { allIds: allDaoMemberIds },
     {
-      enabled: Boolean(allDaoMemberIds),
+      enabled: Boolean(allDaoMemberIds) && hasClaimedMember,
       refetchInterval: false,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
@@ -59,6 +61,22 @@ const Home: NextPage = () => {
     refetch();
   };
 
+  //Check to see if user has Dao Member which means eligible to play in "The Game"
+  trpc.example.checkClaim.useQuery(
+    { id: session?.user.id || "" }, //Hacky fix due to type error in checkClaim
+    {
+      enabled: Boolean(session?.user.id),
+      onSuccess(data) {
+        if (data) {
+          setHasClaimedMember(true);
+        }
+      },
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
   return (
     <>
       <Head>
@@ -80,7 +98,8 @@ const Home: NextPage = () => {
         </div>
 
         <div>
-          {memberPair && (
+          {/* Query returns 2 members & account has a valid dao member tied to it */}
+          {memberPair && hasClaimedMember && (
             <div className="rounder flex items-center justify-between border p-8">
               <MemberCard
                 member={memberPair.firstMember}
@@ -93,8 +112,20 @@ const Home: NextPage = () => {
               />
             </div>
           )}
-          {!memberPair && (
+          {/* Query is loading & account exists & has dao member tied to it */}
+          {!memberPair && session?.user.id && hasClaimedMember && (
             <Image src="/loading-spinner.svg" width={256} height={256} alt="" />
+          )}
+          {/* Account exists but has not claimed a dao member */}
+          {session?.user.id && !hasClaimedMember && (
+            <div>
+              You must claim your Dao Member on the account tab before you can
+              vote in the game.
+            </div>
+          )}
+          {/* User not signed in */}
+          {!session?.user.id && (
+            <div>You must sign in to participate in The Game</div>
           )}
         </div>
       </div>

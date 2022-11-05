@@ -4,24 +4,23 @@ import { prisma } from "@/utils/prisma";
 import { getRandomMember } from "@/utils/getRandomMember";
 
 export const exampleRouter = router({
+  //Edit this
   getDaoMemberIds: publicProcedure
     .input(
       z.object({
-        selfId: z.string().nullish(),
+        selfId: z.string(),
       })
     )
     .query(async ({ input }) => {
+      //Grab Everyone's id but self
       return await prisma.daoMember.findMany({
         where: {
-          //Don't fetch your own dao member. Can't vote for self
           OR: [
             {
               userId: null,
             },
             {
-              //Ensure that everyone is gathered in no session instances.
-              //But still can't get self if logged in
-              NOT: [{ userId: input.selfId ? input.selfId : "dummy string" }],
+              NOT: [{ userId: input.selfId }],
             },
           ],
         },
@@ -102,13 +101,29 @@ export const exampleRouter = router({
       z.object({
         claimingUserId: z.string(),
         daoMemberId: z.string(),
+        name: z.string().nullish(),
+        image_url: z.string().nullish(),
       })
     )
     .mutation(async ({ input }) => {
-      await prisma.daoMember.update({
-        where: { id: input.daoMemberId },
-        data: { userId: input.claimingUserId },
-      });
+      //If image & name exist, include in database update
+      if (input.image_url && input.name) {
+        await prisma.daoMember.update({
+          where: { id: input.daoMemberId },
+          data: {
+            userId: input.claimingUserId,
+            image_url: input.image_url,
+            name: input.name,
+          },
+        });
+      } else {
+        await prisma.daoMember.update({
+          where: { id: input.daoMemberId },
+          data: {
+            userId: input.claimingUserId,
+          },
+        });
+      }
     }),
   checkClaim: publicProcedure
     .input(

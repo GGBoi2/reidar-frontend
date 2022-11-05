@@ -46,6 +46,8 @@ const ManageDaoMember = () => {
     claim.mutate({
       claimingUserId: session.user.id,
       daoMemberId: daoMemberChoice,
+      image_url: session.user.image,
+      name: session.user.name,
     });
   };
 
