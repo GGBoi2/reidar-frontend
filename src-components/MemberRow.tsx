@@ -17,15 +17,15 @@ const MemberRow: React.FC<{
           <span className="ml-3 mr-8 w-7 text-md font-bold text-right">{rank}</span>
           {member.image_url ? (
             <Image
-              width={48}
-              height={48}
+              width={52}
+              height={52}
               layout="fixed"
               className="rounded-full"
               src={`${member.image_url}`}
               alt=""
             />
           ) : (
-            <div className="w-[48px] h-[48px] bg-slate-200 rounded-full"></div>
+            <div className="w-[52px] h-[52px] bg-slate-200 rounded-full"></div>
           )}
         </div>
         <div className="flex flex-grow justify-start text-left text-md font-bold capitalize pl-7">
