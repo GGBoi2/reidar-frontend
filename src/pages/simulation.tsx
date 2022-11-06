@@ -14,6 +14,7 @@ const Simulation: NextPage = () => {
     maxAppearances: false,
     closeInRank: false,
   };
+  console.log("test");
 
   //Flex Your Muscles - Give options for what algorithm changes we want to see: JSON object
   //Pure Random, max appearances, mix of +-5 rankings & random
