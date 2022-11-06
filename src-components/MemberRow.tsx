@@ -14,7 +14,7 @@ const MemberRow: React.FC<{
     <>
       <div className="flex items-center justify-between border-b border-slate-[#d1d1d1] last:border-none last:rounded-b-lg h-[90px] text-slate-800 bg-white">
         <div className="flex items-center justify-end">
-          <span className="ml-2 mr-7 w-7 text-sm font-bold text-right">{rank}</span>
+          <span className="ml-3 mr-8 w-7 text-md font-bold text-right">{rank}</span>
           {member.image_url ? (
             <Image
               width={48}
@@ -28,7 +28,7 @@ const MemberRow: React.FC<{
             <div className="w-[48px] h-[48px] bg-slate-200 rounded-full"></div>
           )}
         </div>
-        <div className="flex flex-grow justify-start text-left text-md font-bold capitalize pl-6">
+        <div className="flex flex-grow justify-start text-left text-md font-bold capitalize pl-7">
           {member.name}
         </div>
         { score > 0 && (

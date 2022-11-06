@@ -48,9 +48,9 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
         <div className="p-4"></div>
         <div className="flex w-full max-w-[650px] flex-col border-slate-500 rounded-lg mb-16">
           <div className="flex font-bold text-sm uppercase justify-start border-slate-500 bg-slate-600 py-1 rounded-t-lg">
-            <span className="pl-3 p-2">Rank</span>
+            <span className="pl-5 p-2">Rank</span>
 
-            <span className="flex flex-grow justidy-start text-left p-2 pl-[80px]">Name</span>
+            <span className="flex flex-grow justidy-start text-left p-2 pl-[85px]">Name</span>
             <span className="flex p-2 pr-6">Raw Score</span>
           </div>
           {props.member
