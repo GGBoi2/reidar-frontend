@@ -33,12 +33,12 @@ const MemberRow: React.FC<{
         </div>
         { score > 0 && (
           <span className="rounded-full bg-green-100 px-4 py-2 text-md font-semibold leading-5 text-green-800 mr-5">
-          {score} points 
+          {score} {1 === 1 ? 'point': 'points'}  
           </span>
         )}
         { score === 0 && (
           <span className="rounded-full bg-slate-100 px-4 py-2 text-md font-semibold leading-5 text-slate-800 mr-5">
-          {score} points 
+          {score} points
           </span>
         )}
         { score < 0 && (
