@@ -12,7 +12,7 @@ const MemberRow: React.FC<{
 }> = ({ member, rank, score }) => {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-slate-[#d1d1d1] last:border-none last:rounded-b-lg h-[90px] text-slate-800 bg-white">
+      <div className="flex items-center justify-between border-slate-[#d1d1d1] last:border-none last:rounded-b-lg h-[90px] text-slate-800 bg-white even:bg-[#F9FAFB]">
         <div className="flex items-center justify-end">
           <span className="ml-3 mr-8 w-7 text-md font-bold text-right">{rank}</span>
           {member.image_url ? (
