@@ -24,6 +24,9 @@ function Header() {
             <a className="px-2 pr-4">Account</a>
           </Link>
         )}
+        <Link href="/simulation">
+          <a className="px-2">Simulation</a>
+        </Link>
         {session && (
           <>
             <button
