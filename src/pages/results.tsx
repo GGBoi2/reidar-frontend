@@ -43,14 +43,14 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center text-slate-300">
-        <h1 className="p-4 text-2xl text-white">Results</h1>
+      <div className="flex flex-col items-center text-slate-300 font-mono">
+        <h1 className="p-4 text-2xl text-white mt-16 mb-12">🏆 Results</h1>
         <div className="p-4"></div>
-        <div className="flex w-full max-w-2xl flex-col border">
-          <div className="flex font-bold text-sm uppercase justify-start border-b bg-slate-600 py-1">
-            <span className="pl-4 p-2">Rank</span>
+        <div className="flex w-full max-w-[650px] flex-col border border-slate-500 rounded-lg mb-16">
+          <div className="flex font-bold text-sm uppercase justify-start border-b border-slate-500 bg-slate-600 py-1 rounded-t-lg">
+            <span className="pl-3 p-2">Rank</span>
 
-            <span className="flex flex-grow justidy-start text-left p-2 pl-[70px]">Name</span>
+            <span className="flex flex-grow justidy-start text-left p-2 pl-[80px]">Name</span>
             <span className="flex p-2 pr-4">Raw Score</span>
           </div>
           {props.member
