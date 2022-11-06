@@ -43,15 +43,15 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center">
-        <h1 className="p-4 text-2xl">Results</h1>
+      <div className="flex flex-col items-center text-slate-300 font-mono">
+        <h1 className="p-4 text-2xl text-white mt-12 mb-6">🏆 Results</h1>
         <div className="p-4"></div>
-        <div className="flex w-full  max-w-2xl flex-col border">
-          <div className="flex justify-between border-b">
-            <span className="mr-8 p-2 text-pink-500">RANK</span>
+        <div className="flex w-full max-w-[650px] flex-col border-slate-500 rounded-lg mb-16">
+          <div className="flex font-bold text-sm uppercase justify-start border-slate-500 bg-slate-600 py-1 rounded-t-lg">
+            <span className="pl-5 p-2">Rank</span>
 
-            <span className="p-2">NAME</span>
-            <span className="p-2">RAW SCORE</span>
+            <span className="flex flex-grow justidy-start text-left p-2 pl-[85px]">Name</span>
+            <span className="flex p-2 pr-6">Raw Score</span>
           </div>
           {props.member
             .sort((a, b) => generateRawScore(b) - generateRawScore(a))
