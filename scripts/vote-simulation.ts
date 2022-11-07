@@ -1,13 +1,9 @@
-import cuid from "cuid";
-
 type Result = {
   n: number;
   error: number;
 }[];
 
 function sim_pureRand(n: number, p: number) {
-  const rankedArray = Array.from(Array(p).keys());
-  // 0-62
   const resultArray = [];
   for (let i = 0; i < n; i++) {
     const indexOne = Math.floor(Math.random() * p);
@@ -37,18 +33,16 @@ function sim_pureRand(n: number, p: number) {
       return { rank: index + 1, score: element };
     }
   );
-  
+
   const sortedArray = arrayWithIndexAndScore.sort((a, b) => b.score - a.score);
-  
-    //calculate error
-    let error = 0;
-    sortedArray.map((result, index) => {
-      error += (result.rank - (index + 1)) ** 2;
-    })
-    return error
+
+  //calculate error
+  let error = 0;
+  sortedArray.map((result, index) => {
+    error += (result.rank - (index + 1)) ** 2;
+  });
+  return error;
 }
-
-
 
 const Simulate = (
   N: number[],
@@ -59,7 +53,7 @@ const Simulate = (
     closeInRank: boolean;
   }
 ): Result => {
-  let res: Result = [];
+  const res: Result = [];
 
   const sim_count = 10000;
 
@@ -68,12 +62,12 @@ const Simulate = (
 
     for (let j = 0; j < sim_count; j++) {
       // do individual simulation
-      let individual_error: number = 0;
+      let individual_error = 0;
       if (options.pureRandom) {
         individual_error = sim_pureRand(N[i], P);
       }
       // if different voting algothims, make those if statemnt to call
-      
+
       total_error += individual_error;
     }
 
@@ -82,10 +76,5 @@ const Simulate = (
 
   return res;
 };
-console.log(Simulate([630, 1575, 1890], 63, { pureRandom: true, maxAppearances: false, closeInRank: false }));
+
 export default Simulate;
-
-//test
-//One more test
-
-// npm run ts-node ./scripts/dao-simulation.ts

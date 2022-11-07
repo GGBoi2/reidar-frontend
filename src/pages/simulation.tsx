@@ -5,8 +5,8 @@ import Header from "src-components/Header";
 import Simulate from "@/../scripts/vote-simulation";
 
 const Simulation: NextPage = () => {
-  const [voteNumbers, setVoteNumber] = useState<number[]>();
-  const [testSize, setTestSize] = useState<number>();
+  const [voteNumbers, setVoteNumber] = useState<number[]>([]);
+  const [testSize, setTestSize] = useState<number>(0);
   const [options, setOptions] = useState({
     pureRandom: false,
     maxAppearances: false,
@@ -52,6 +52,8 @@ const Simulation: NextPage = () => {
   const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setHasSubmitted(true);
+    const results = Simulate(voteNumbers, testSize, options);
+    console.log(results);
   };
 
   //Flex Your Muscles - Give options for what algorithm changes we want to see: JSON object
