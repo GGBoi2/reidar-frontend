@@ -177,7 +177,20 @@ const Simulation: NextPage = () => {
         </div>
       )}
       {hasSubmitted && (
-        <div className="m-8 mx-auto flex max-w-6xl  ">
+        <div className="m-8 mx-auto flex max-w-6xl flex-col  ">
+          <button
+            onClick={() => {
+              setHasSubmitted(false);
+              setData(undefined);
+              setOptions({
+                pureRandom: true,
+                maxAppearances: false,
+                closeInRank: false,
+              });
+            }}
+          >
+            Create Another Chart
+          </button>
           {data && <Line data={data} />}
         </div>
       )}
