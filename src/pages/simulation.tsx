@@ -37,21 +37,8 @@ const Simulation: NextPage = () => {
     closeInRank: false,
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  // const [data, setData] = useState<{
-  //   labels: string[],
-  //   datasets: number[],
-  //   fill: boolean
-  // }>();
-  const [data, setData] = useState<ChartData<"line">>({
-    datasets: [
-      {
-        label: "First Dataset",
-        data: [0, 1, 2],
-      },
-    ],
-    labels: ["a", "b", "c"],
-  });
-  const maxVotes = 3000;
+  const [data, setData] = useState<ChartData<"line">>();
+  const maxVotes = 8000;
   const maxDaoSize = 100;
 
   //Add Errors for if you go over the max limit
@@ -91,19 +78,24 @@ const Simulation: NextPage = () => {
     event.preventDefault();
     setHasSubmitted(true);
     const results = Simulate(voteNumbers, testSize, options);
+    const voteSizes: string[] = [];
+    const errorVals: number[] = [];
+    results.map((result) => {
+      voteSizes.push(String(result.n));
+      errorVals.push(result.error);
+    });
 
     const intermediateData: ChartData<"line"> = {
       datasets: [
         {
           label: "First Dataset",
-          data: [results[0].error, results[1].error, results[2].error],
+          data: errorVals,
+          fill: true,
+          backgroundColor: "rgba(75,192,192,0.2)",
+          borderColor: "rgba(75,192,192,1)",
         },
       ],
-      labels: [
-        String(results[0].n),
-        String(results[1].n),
-        String(results[2].n),
-      ],
+      labels: voteSizes,
     };
     setData(intermediateData);
   };
@@ -185,11 +177,9 @@ const Simulation: NextPage = () => {
         </div>
       )}
       {hasSubmitted && (
-        <>
-          <div className=" flex flex-col items-center">
-            <Line data={data} />
-          </div>
-        </>
+        <div className="m-8 mx-auto flex max-w-6xl  ">
+          {data && <Line data={data} />}
+        </div>
       )}
     </>
   );

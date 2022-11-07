@@ -55,7 +55,7 @@ const Simulate = (
 ): Result => {
   const res: Result = [];
 
-  const sim_count = 10000;
+  const sim_count = 1000;
 
   for (let i = 0; i < N.length; i++) {
     let total_error = 0;
@@ -70,8 +70,11 @@ const Simulate = (
 
       total_error += individual_error;
     }
+    const averageSimError = total_error / sim_count;
+    const averageSquareError = averageSimError / P;
+    const averageRankError = Math.sqrt(averageSquareError);
 
-    res.push({ n: N[i], error: total_error / sim_count });
+    res.push({ n: N[i], error: averageRankError });
   }
 
   return res;
