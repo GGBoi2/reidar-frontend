@@ -3,30 +3,14 @@ import { useState } from "react";
 
 import Header from "src-components/Header";
 import Simulate from "@/../scripts/vote-simulation";
-import type { Result } from "@/../scripts/vote-simulation";
-import { Line } from "react-chartjs-2";
-import type { ChartData, ChartOptions } from "chart.js";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Chart } from "react-chartjs-2";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import LineGraph from "src-components/LineGraph";
+
+type LineData = {
+  xAxis: string[];
+  yAxis: number[];
+  lineOptions: Record<string, unknown>;
+};
 
 const Simulation: NextPage = () => {
   const [voteNumbers, setVoteNumber] = useState<number[]>([]);
@@ -37,11 +21,12 @@ const Simulation: NextPage = () => {
     closeInRank: false,
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [data, setData] = useState<ChartData<"line">>();
+  const [data, setData] = useState<LineData>();
   const maxVotes = 8000;
   const maxDaoSize = 100;
 
   //Add Errors for if you go over the max limit
+  //Get Form inputs and format correctly
   const inputChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
@@ -63,6 +48,7 @@ const Simulation: NextPage = () => {
       }
     }
 
+    //There's definitely a smarter way to do this lol
     if (name === "pureRandom") {
       setOptions({ ...options, pureRandom: !options.pureRandom });
     }
@@ -74,47 +60,36 @@ const Simulation: NextPage = () => {
     }
   };
 
-  const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
+  //Do Simulation on Form Submit.
+  const voteSizes: string[] = [];
+  const errorVals: number[] = [];
+  const onSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setHasSubmitted(true);
-    const results = Simulate(voteNumbers, testSize, options);
-    const voteSizes: string[] = [];
-    const errorVals: number[] = [];
+    const results = await Simulate(voteNumbers, testSize, options);
+    //Format Results in usable form
     results.map((result) => {
       voteSizes.push(String(result.n));
       errorVals.push(result.error);
     });
+    //Update Data set based on the calculated data
+    setData({
+      xAxis: voteSizes,
+      yAxis: errorVals,
+      lineOptions: options,
+    });
 
-    const intermediateData: ChartData<"line"> = {
-      datasets: [
-        {
-          label: "First Dataset",
-          data: errorVals,
-          fill: true,
-          backgroundColor: "rgba(75,192,192,0.2)",
-          borderColor: "rgba(75,192,192,1)",
-        },
-      ],
-      labels: voteSizes,
-    };
-    setData(intermediateData);
+    //Render Graph
+    setHasSubmitted(true);
   };
-
-  //Flex Your Muscles - Give options for what algorithm changes we want to see: JSON object
-  //Pure Random, max appearances, mix of +-5 rankings & random
-
-  //Error Calculation Method: String of text
-
-  //Chart Displaying Rank Results with toggle for different voting amounts vs true rank
-  //Chart Diplaying error vs. N
 
   return (
     <>
       <Header />
+      {/* Determine the parameters of the simulation */}
       {!hasSubmitted && (
         <div className=" flex flex-col items-center">
           <form className="" onSubmit={(e) => onSubmitHandler(e)}>
-            <div className="flex justify-center p-2 text-xl">
+            <div className="mb-4 flex justify-center p-2 text-xl">
               Configure the Simulation
             </div>
 
@@ -176,22 +151,34 @@ const Simulation: NextPage = () => {
           </form>
         </div>
       )}
+      {/* Show the Results Graph */}
       {hasSubmitted && (
-        <div className="m-8 mx-auto flex max-w-6xl flex-col  ">
-          <button
-            onClick={() => {
-              setHasSubmitted(false);
-              setData(undefined);
-              setOptions({
-                pureRandom: true,
-                maxAppearances: false,
-                closeInRank: false,
-              });
-            }}
-          >
-            Create Another Chart
-          </button>
-          {data && <Line data={data} />}
+        <div className="m-8 mx-auto flex max-w-6xl flex-col items-center ">
+          <div className="mb-4">
+            {/* ALlow someone to reset & generate new graph */}
+            <button
+              className="border border-white p-1"
+              onClick={() => {
+                setHasSubmitted(false);
+                setData(undefined);
+                setOptions({
+                  pureRandom: true,
+                  maxAppearances: false,
+                  closeInRank: false,
+                });
+              }}
+            >
+              Create Another Chart
+            </button>
+          </div>
+          {/* Create Graph if data */}
+          {data && (
+            <LineGraph
+              options={data.lineOptions}
+              xAxis={data.xAxis}
+              yAxis={data.yAxis}
+            />
+          )}
         </div>
       )}
     </>
