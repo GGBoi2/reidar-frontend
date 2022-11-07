@@ -3,16 +3,54 @@ import { useState } from "react";
 
 import Header from "src-components/Header";
 import Simulate from "@/../scripts/vote-simulation";
+import type { Result } from "@/../scripts/vote-simulation";
+import { Line } from "react-chartjs-2";
+import type { ChartData, ChartOptions } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Chart } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Simulation: NextPage = () => {
   const [voteNumbers, setVoteNumber] = useState<number[]>([]);
   const [testSize, setTestSize] = useState<number>(0);
   const [options, setOptions] = useState({
-    pureRandom: false,
+    pureRandom: true,
     maxAppearances: false,
     closeInRank: false,
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  // const [data, setData] = useState<{
+  //   labels: string[],
+  //   datasets: number[],
+  //   fill: boolean
+  // }>();
+  const [data, setData] = useState<ChartData<"line">>({
+    datasets: [
+      {
+        label: "First Dataset",
+        data: [0, 1, 2],
+      },
+    ],
+    labels: ["a", "b", "c"],
+  });
   const maxVotes = 3000;
   const maxDaoSize = 100;
 
@@ -53,7 +91,21 @@ const Simulation: NextPage = () => {
     event.preventDefault();
     setHasSubmitted(true);
     const results = Simulate(voteNumbers, testSize, options);
-    console.log(results);
+
+    const intermediateData: ChartData<"line"> = {
+      datasets: [
+        {
+          label: "First Dataset",
+          data: [results[0].error, results[1].error, results[2].error],
+        },
+      ],
+      labels: [
+        String(results[0].n),
+        String(results[1].n),
+        String(results[2].n),
+      ],
+    };
+    setData(intermediateData);
   };
 
   //Flex Your Muscles - Give options for what algorithm changes we want to see: JSON object
@@ -133,7 +185,11 @@ const Simulation: NextPage = () => {
         </div>
       )}
       {hasSubmitted && (
-        <div className=" flex flex-col items-center">Test submitted</div>
+        <>
+          <div className=" flex flex-col items-center">
+            <Line data={data} />
+          </div>
+        </>
       )}
     </>
   );

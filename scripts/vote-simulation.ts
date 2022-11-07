@@ -78,3 +78,4 @@ const Simulate = (
 };
 
 export default Simulate;
+export type { Result };
