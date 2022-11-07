@@ -10,6 +10,7 @@ type LineData = {
   xAxis: string[];
   yAxis: number[];
   lineOptions: Record<string, unknown>;
+  sampleSize: number;
 };
 
 const Simulation: NextPage = () => {
@@ -22,7 +23,7 @@ const Simulation: NextPage = () => {
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [data, setData] = useState<LineData>();
-  const maxVotes = 8000;
+  const maxVotes = 16000;
   const maxDaoSize = 100;
 
   //Add Errors for if you go over the max limit
@@ -76,6 +77,7 @@ const Simulation: NextPage = () => {
       xAxis: voteSizes,
       yAxis: errorVals,
       lineOptions: options,
+      sampleSize: testSize,
     });
 
     //Render Graph
@@ -175,8 +177,9 @@ const Simulation: NextPage = () => {
           {data && (
             <LineGraph
               options={data.lineOptions}
-              xAxis={data.xAxis}
-              yAxis={data.yAxis}
+              xAxisValues={data.xAxis}
+              yAxisValues={data.yAxis}
+              sampleSize={data.sampleSize}
             />
           )}
         </div>

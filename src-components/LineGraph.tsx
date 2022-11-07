@@ -24,9 +24,10 @@ ChartJS.register(
 //Take in options, xAxis, yAxis props
 const LineGraph: React.FC<{
   options: Record<string, unknown>;
-  xAxis: string[];
-  yAxis: number[];
-}> = ({ options, xAxis, yAxis }) => {
+  xAxisValues: string[];
+  yAxisValues: number[];
+  sampleSize: number;
+}> = ({ options, xAxisValues, yAxisValues, sampleSize }) => {
   //Configure Graph Label based on options
   //This needs to be improved
   let graphLabel = "";
@@ -39,23 +40,42 @@ const LineGraph: React.FC<{
   if (options.closeInRank) {
     graphLabel = "Close in Rank";
   }
+  graphLabel = graphLabel.concat(`, ${sampleSize} members`);
 
   //Format data for chart
   const data: ChartData<"line"> = {
     datasets: [
       {
         label: graphLabel,
-        data: yAxis,
+        data: yAxisValues,
+
         fill: true,
         backgroundColor: "rgba(75,192,192,0.2)",
         borderColor: "rgba(75,192,192,1)",
       },
     ],
-    labels: xAxis,
+
+    labels: xAxisValues,
+  };
+  const config: ChartOptions<"line"> = {
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: "Average Rank Error",
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Number of Votes",
+        },
+      },
+    },
   };
 
   //Create chart
-  return <Line data={data} />;
+  return <Line className="m-4 bg-white p-4" options={config} data={data} />;
 };
 
 export default LineGraph;
