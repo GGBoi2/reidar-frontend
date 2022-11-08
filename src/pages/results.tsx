@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import type { GetServerSideProps } from "next";
+import React from 'react';
 
 import { AppRouterTypes } from "@/utils/trpc";
 
@@ -38,8 +39,35 @@ const generateRawScore = (member: MemberQueryResult[number]) => {
   return Score;
 };
 
+
+
 //Generate Results Page
 const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
+
+
+  React.useEffect(() => {
+
+    // Logic for adding a sticky header and updating the element styling
+    
+    function handleScroll() {
+      const tableHeader = document.querySelector('.table-header') as HTMLElement;
+      const tableHeaderTop = tableHeader.getBoundingClientRect().top;
+
+      if (tableHeaderTop <= 0) {
+        tableHeader.classList.add('stuck');
+      } else if (tableHeaderTop > 0) {
+        tableHeader.classList.remove('stuck');
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('mousemove', handleScroll);
+    }
+
+  }, [])
+
   return (
     <>
       <Header />
@@ -47,7 +75,7 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
         <h1 className="p-4 text-2xl text-white mt-12 mb-6">🏆 Results</h1>
         <div className="p-4"></div>
         <div className="flex w-full max-w-[725px] flex-col border-slate-500 rounded-lg mb-16">
-          <div className="flex font-bold text-sm uppercase justify-start border-slate-500 bg-slate-600 py-1 rounded-t-lg">
+          <div className="table-header flex font-bold text-sm uppercase justify-start border-slate-500 bg-slate-600 py-1 rounded-t-lg">
             <span className="pl-5 p-2">Rank</span>
 
             <span className="flex flex-grow justidy-start text-left p-2 pl-[90px]">Name</span>
