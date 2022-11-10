@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import totalSim from "src-components/simulation/total-sim";
+import totalSim from "./total-sim";
 
 export type LineData = {
   xAxis: string[];

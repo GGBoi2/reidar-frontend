@@ -1,4 +1,4 @@
-import individualSim from "../../scripts/individual-sim";
+import individualSim from "./individual-sim";
 
 const totalSim = (
   maxVotes: number[],
