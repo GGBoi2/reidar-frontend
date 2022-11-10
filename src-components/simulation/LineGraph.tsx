@@ -26,7 +26,7 @@ ChartJS.register(
 const LineGraph: React.FC<{
   data: LineData;
 }> = (props) => {
-  const lineValues = []; //Type ChartDataset something????
+  const lineValues: any = []; //Type ChartDataset something????
   const labelValues = props.data[0].xAxis;
   const lineColors = [
     {
