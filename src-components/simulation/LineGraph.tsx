@@ -1,3 +1,4 @@
+import { LineData } from "./form";
 import { Line } from "react-chartjs-2";
 import type { ChartData, ChartOptions } from "chart.js";
 import {
@@ -23,40 +24,39 @@ ChartJS.register(
 
 //Take in options, xAxis, yAxis props
 const LineGraph: React.FC<{
-  options: Record<string, unknown>;
-  xAxisValues: string[];
-  yAxisValues: number[];
-  sampleSize: number;
-}> = ({ options, xAxisValues, yAxisValues, sampleSize }) => {
-  //Configure Graph Label based on options
-  //This needs to be improved
-  let graphLabel = "";
-  if (options.pureRandom) {
-    graphLabel = "Pure Random";
-  }
-  if (options.maxAppearances) {
-    graphLabel = "Max Appearances";
-  }
-  if (options.closeInRank) {
-    graphLabel = "Close in Rank";
-  }
-  graphLabel = graphLabel.concat(`, ${sampleSize} members`);
+  data: LineData;
+}> = (props) => {
+  const lineValues = []; //Type ChartDataset something????
+  const labelValues = props.data[0].xAxis;
+  const lineColors = [
+    {
+      backgroundColor: "rgba(75,192,192,0.2)",
+      borderColor: "rgba(75,192,192,1)",
+    },
+    {
+      backgroundColor: "rgba(255,0,0,0.2)",
+      borderColor: "rgba(255,0,0,1)",
+    },
+  ];
 
-  //Format data for chart
-  const data: ChartData<"line"> = {
-    datasets: [
-      {
-        label: graphLabel,
-        data: yAxisValues,
-
+  props.data.map((algorithm, index) => {
+    //Filter out not flagged algorithms
+    if (!algorithm.yAxis.includes(0)) {
+      lineValues.push({
+        label: algorithm.lineName,
+        data: algorithm.yAxis,
         fill: true,
-        backgroundColor: "rgba(75,192,192,0.2)",
-        borderColor: "rgba(75,192,192,1)",
-      },
-    ],
+        backgroundColor: lineColors[index].backgroundColor,
+        borderColor: lineColors[index].borderColor,
+      });
+    }
+  });
 
-    labels: xAxisValues,
+  const chartData: ChartData<"line"> = {
+    labels: labelValues,
+    datasets: lineValues,
   };
+
   const config: ChartOptions<"line"> = {
     scales: {
       y: {
@@ -75,7 +75,9 @@ const LineGraph: React.FC<{
   };
 
   //Create chart
-  return <Line className="m-4 bg-white p-4" options={config} data={data} />;
+  return (
+    <Line className="m-4 bg-white p-4" options={config} data={chartData} />
+  );
 };
 
 export default LineGraph;

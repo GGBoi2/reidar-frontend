@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import Simulate from "@/../scripts/vote-simulation";
 
-type LineData = {
+import totalSim from "@/../scripts/improved-vote-sim";
+
+export type LineData = {
   xAxis: string[];
   yAxis: number[];
-  lineOptions: Record<string, unknown>;
+  lineName: string;
   sampleSize: number;
-};
+}[];
 
 //Set Props & typing for form
 const Form: React.FC<{
@@ -59,8 +60,7 @@ const Form: React.FC<{
   };
 
   //Do Simulation on Form Submit.
-  const voteSizes: string[] = [];
-  const errorVals: number[] = [];
+
   const onSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
@@ -75,20 +75,32 @@ const Form: React.FC<{
         throw `The max vote option is ${maxVotes}`;
       }
 
-      const results = await Simulate(voteNumbers, testSize, options);
+      // const results = await Simulate(voteNumbers, testSize, options);
+      const results = await totalSim(voteNumbers, testSize, options);
+
+      const formattedResults: LineData = [];
       //Format Results in usable form
-      results.map((result) => {
-        voteSizes.push(String(result.n));
-        errorVals.push(result.error);
+      results.map((algorithm) => {
+        const voteSizes: string[] = [];
+        const errorVals: number[] = [];
+        let name = "";
+        algorithm.map((soloRun) => {
+          voteSizes.push(String(soloRun.voteCount));
+          errorVals.push(soloRun.rankError);
+          name = soloRun.algorithm;
+        });
+
+        formattedResults.push({
+          xAxis: voteSizes,
+          yAxis: errorVals,
+          lineName: name,
+          sampleSize: testSize,
+        });
+
+        //Update Data set based on the calculated data
       });
-      //Update Data set based on the calculated data
-      setLineData({
-        xAxis: voteSizes,
-        yAxis: errorVals,
-        lineOptions: options,
-        sampleSize: testSize,
-      });
-      console.log(lineData);
+
+      setLineData(formattedResults);
       //Render Graph
       setSubmitted(true);
     } catch (err) {}
