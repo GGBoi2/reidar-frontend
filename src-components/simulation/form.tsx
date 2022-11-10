@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import totalSim from "@/../scripts/improved-vote-sim";
+import totalSim from "../../scripts/improved-vote-sim";
 
 export type LineData = {
   xAxis: string[];
