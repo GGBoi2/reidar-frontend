@@ -22,6 +22,7 @@ const Form: React.FC<{
     pureRandom: true,
     maxAppearances: false,
     closeInRank: false,
+    closeAndMax: false,
   });
   //   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -56,6 +57,9 @@ const Form: React.FC<{
     }
     if (name === "closeInRank") {
       setOptions({ ...options, closeInRank: !options.closeInRank });
+    }
+    if (name === "closeAndMax") {
+      setOptions({ ...options, closeAndMax: !options.closeAndMax });
     }
   };
 
@@ -167,6 +171,16 @@ const Form: React.FC<{
                 checked={options.closeInRank}
                 onChange={(e) => inputChangeHandler(e)}
                 name="closeInRank"
+              />
+            </div>
+            <div className="flex justify-between">
+              <label htmlFor="closeAndMax">Close Rank & Max Appearances</label>
+              <input
+                type={"checkbox"}
+                id={"closeAndMax"}
+                checked={options.closeAndMax}
+                onChange={(e) => inputChangeHandler(e)}
+                name="closeAndMax"
               />
             </div>
           </div>

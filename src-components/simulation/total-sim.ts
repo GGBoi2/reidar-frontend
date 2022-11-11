@@ -7,6 +7,7 @@ const totalSim = (
     pureRandom: boolean;
     maxAppearances: boolean;
     closeInRank: boolean;
+    closeAndMax: boolean;
   }
 ): Result[] => {
   const simCount = 100;
@@ -37,7 +38,7 @@ const totalSim = (
 
     return algoResult;
   });
-  console.log(datasets);
+
   return datasets;
 };
 
