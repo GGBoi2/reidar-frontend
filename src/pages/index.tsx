@@ -9,6 +9,7 @@ import Header from "src-components/Header";
 import MemberCard from "src-components/MemberCard";
 import { useSession } from "next-auth/react";
 
+//Rework the Game
 const Home: NextPage = () => {
   //Fetch 2 Members
   const { data: session } = useSession();
