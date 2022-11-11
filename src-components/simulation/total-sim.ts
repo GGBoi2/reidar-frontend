@@ -13,7 +13,7 @@ const totalSim = (
 
   //Only include true ones
   const datasets: Result[] = Object.entries(options).map(([key, value]) => {
-    //Filter out false algo options
+    //Filtered out unselected options at graphing. Was easier to do there than here from a programming standpoint. Should be improved.
 
     const algoResult = maxVotes.map((voteAmount) => {
       let specificVoteError = 0;
@@ -37,15 +37,9 @@ const totalSim = (
 
     return algoResult;
   });
-
+  console.log(datasets);
   return datasets;
 };
-
-totalSim([1500, 2500, 4500], 63, {
-  pureRandom: true,
-  maxAppearances: true,
-  closeInRank: false,
-});
 
 export default totalSim;
 export type { Result };

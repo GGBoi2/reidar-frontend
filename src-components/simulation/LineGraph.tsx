@@ -37,6 +37,14 @@ const LineGraph: React.FC<{
       backgroundColor: "rgba(255,0,0,0.2)",
       borderColor: "rgba(255,0,0,1)",
     },
+    {
+      backgroundColor: "rgba(0,255,0,0.2)",
+      borderColor: "rgba(0,255,0,1)",
+    },
+    {
+      backgroundColor: "rgba(0,0,255,0.2)",
+      borderColor: "rgba(0,0,255,1)",
+    },
   ];
 
   props.data.map((algorithm, index) => {

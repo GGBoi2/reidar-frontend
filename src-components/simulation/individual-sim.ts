@@ -28,28 +28,70 @@ const individualSim: (
     };
   });
 
-  const getRandomNumber: (noPicks: number[], notThisOne?: number) => number = (
-    noPicks,
-    notThisOne?
-  ) => {
+  const getRandomNumber: (
+    noPicks: number[],
+    notThisOne?: number,
+    pickSize?: number
+  ) => number = (noPicks, notThisOne?, pickSize?) => {
+    //Choose within 10 values of the first selected option everytime
+    if (pickSize && notThisOne) {
+      //Determine the amount I need to shift the selection window up or down based on pre-chosen value
+
+      let index = 0;
+      const randomRoll =
+        Math.floor(Math.random() * pickSize) - Math.round(pickSize / 2);
+
+      if (randomRoll + notThisOne < 0) {
+        index = pickSize / 2 - randomRoll;
+      } else if (randomRoll + notThisOne > memberDatabase.length - 1) {
+        index = memberDatabase.length - 1 - (pickSize / 2 + randomRoll);
+      } else {
+        index = notThisOne + randomRoll;
+      }
+
+      if (!noPicks.includes(index) && index !== notThisOne) {
+        return index;
+      } else {
+        return getRandomNumber(noPicks, notThisOne);
+      }
+    }
+
+    //Choose a random number
     const index = Math.floor(Math.random() * memberDatabase.length);
 
     if (!noPicks.includes(index) && index !== notThisOne) {
       return index;
     } else {
-      return getRandomNumber(noPicks, notThisOne);
+      return getRandomNumber(noPicks, notThisOne, pickSize);
     }
   };
 
   //Create Voting Logic against the database
   const castVote = (noPicks: number[]) => {
+    let indexOne = 0;
+    let indexTwo = 0;
     //Add check to make sure they aren't the same number
-    const indexOne = getRandomNumber(noPicks);
-    const indexTwo = getRandomNumber(noPicks, indexOne);
+    const random = Math.random();
+    if (options.algoName === "closeInRank" && options.state && random < 0.5) {
+      indexOne = getRandomNumber(noPicks);
 
-    //Vote for higher ranked one
-    const winner = indexOne < indexTwo ? indexOne : indexTwo;
-    const loser = indexOne < indexTwo ? indexTwo : indexOne;
+      const pickSize = 20;
+
+      indexTwo = getRandomNumber(noPicks, indexOne, pickSize);
+    } else {
+      indexOne = getRandomNumber(noPicks);
+      indexTwo = getRandomNumber(noPicks, indexOne);
+    }
+
+    //Smaller rank means closer to rank 1
+    const winner =
+      memberDatabase[indexOne].rank < memberDatabase[indexTwo].rank
+        ? indexOne
+        : indexTwo;
+    const loser =
+      memberDatabase[indexOne].rank < memberDatabase[indexTwo].rank
+        ? indexTwo
+        : indexOne;
 
     //Update Database
     memberDatabase[winner].votesFor += 1;
@@ -80,6 +122,13 @@ const individualSim: (
       } else {
         break;
       }
+    }
+
+    if (options.algoName === "closeInRank" && options.state) {
+      if (i % 100 === 0) {
+        memberDatabase.sort((a, b) => b.rawScore - a.rawScore);
+      }
+      castVote([]);
     }
 
     //No Algo alteration
