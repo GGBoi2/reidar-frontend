@@ -1,9 +1,12 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import { useState } from "react";
 
 import { trpc } from "../utils/trpc";
-import Image from "next/image";
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { theGameRouter } from "@/server/trpc/router/theGame";
+import { createContextInner } from "@/server/trpc/context";
 
 import Header from "src-components/Header";
 import MemberCard from "src-components/MemberCard";
@@ -16,15 +19,22 @@ const Home: NextPage = () => {
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
 
   //Fetch all Ids once for the whole session rather than on each vote
-  const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
-    { selfId: session?.user.id || "" }, //Will not be null because query won't fire till it exists
-    {
-      enabled: Boolean(session?.user.id),
-      refetchInterval: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const response = trpc.theGame.getDaoMemberIds.useQuery(undefined, {
+    refetchInterval: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+  console.log(response);
+  const allDaoMemberIds = response.data;
+  // const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
+  //   { selfId: session?.user.id || "" }, //Will not be null because query won't fire till it exists
+  //   {
+  //     enabled: Boolean(session?.user.id),
+  //     refetchInterval: false,
+  //     refetchOnReconnect: false,
+  //     refetchOnWindowFocus: false,
+  //   }
+  // );
 
   const { data: memberPair, refetch } = trpc.theGame.getTwoMembers.useQuery(
     //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
@@ -135,3 +145,21 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+//SSG
+export const getStaticProps = async () => {
+  const ssg = createProxySSGHelpers({
+    router: theGameRouter,
+    ctx: await createContextInner({ session: null }),
+  });
+
+  const allIds = await ssg.getDaoMemberIds.fetch();
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      allIds,
+    },
+    revalidate: 30,
+  };
+};

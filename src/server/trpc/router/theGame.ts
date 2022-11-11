@@ -4,31 +4,18 @@ import { prisma } from "@/utils/prisma";
 import { getRandomMember } from "@/utils/getRandomMember";
 
 export const theGameRouter = router({
-  //Edit this
-  getDaoMemberIds: publicProcedure
-    .input(
-      z.object({
-        selfId: z.string(),
-      })
-    )
-    .query(async ({ input }) => {
-      //Grab Everyone's id but self
-      return await prisma.daoMember.findMany({
-        where: {
-          OR: [
-            {
-              userId: null,
-            },
-            {
-              NOT: [{ userId: input.selfId }],
-            },
-          ],
-        },
-        select: {
-          id: true,
-        },
-      });
-    }),
+  //Edit this. Get all IDs. Pop user's ID from the stack on the front end instead of in the query
+  getDaoMemberIds: publicProcedure.query(async () => {
+    //Grab Everyone's id. Pop self on front end
+    return await prisma.daoMember.findMany({
+      where: {
+        pickable: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }),
   getTwoMembers: publicProcedure
     .input(
       z.record(
