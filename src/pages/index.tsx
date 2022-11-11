@@ -16,7 +16,7 @@ const Home: NextPage = () => {
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
 
   //Fetch all Ids once for the whole session rather than on each vote
-  const { data: allDaoMemberIds } = trpc.example.getDaoMemberIds.useQuery(
+  const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
     { selfId: session?.user.id || "" }, //Will not be null because query won't fire till it exists
     {
       enabled: Boolean(session?.user.id),
@@ -26,7 +26,7 @@ const Home: NextPage = () => {
     }
   );
 
-  const { data: memberPair, refetch } = trpc.example.getTwoMembers.useQuery(
+  const { data: memberPair, refetch } = trpc.theGame.getTwoMembers.useQuery(
     //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
     { allIds: allDaoMemberIds },
     {
@@ -38,7 +38,7 @@ const Home: NextPage = () => {
   );
 
   //Voting Logic
-  const voteMutation = trpc.example.voteForMember.useMutation();
+  const voteMutation = trpc.theGame.voteForMember.useMutation();
   const voteForMember = (selected: string) => {
     //Ensure that we have the data or else TS throws undefined errors
     if (!memberPair) return;
