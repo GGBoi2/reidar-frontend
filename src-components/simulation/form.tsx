@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import Simulate from "@/../scripts/vote-simulation";
 
-type LineData = {
+import totalSim from "./total-sim";
+
+export type LineData = {
   xAxis: string[];
   yAxis: number[];
-  lineOptions: Record<string, unknown>;
+  lineName: string;
   sampleSize: number;
-};
+}[];
 
 //Set Props & typing for form
 const Form: React.FC<{
@@ -21,6 +22,7 @@ const Form: React.FC<{
     pureRandom: true,
     maxAppearances: false,
     closeInRank: false,
+    closeAndMax: false,
   });
   //   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -56,11 +58,13 @@ const Form: React.FC<{
     if (name === "closeInRank") {
       setOptions({ ...options, closeInRank: !options.closeInRank });
     }
+    if (name === "closeAndMax") {
+      setOptions({ ...options, closeAndMax: !options.closeAndMax });
+    }
   };
 
   //Do Simulation on Form Submit.
-  const voteSizes: string[] = [];
-  const errorVals: number[] = [];
+
   const onSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
@@ -75,20 +79,32 @@ const Form: React.FC<{
         throw `The max vote option is ${maxVotes}`;
       }
 
-      const results = await Simulate(voteNumbers, testSize, options);
+      // const results = await Simulate(voteNumbers, testSize, options);
+      const results = await totalSim(voteNumbers, testSize, options);
+
+      const formattedResults: LineData = [];
       //Format Results in usable form
-      results.map((result) => {
-        voteSizes.push(String(result.n));
-        errorVals.push(result.error);
+      results.map((algorithm) => {
+        const voteSizes: string[] = [];
+        const errorVals: number[] = [];
+        let name = "";
+        algorithm.map((soloRun) => {
+          voteSizes.push(String(soloRun.voteCount));
+          errorVals.push(soloRun.rankError);
+          name = soloRun.algorithm;
+        });
+
+        formattedResults.push({
+          xAxis: voteSizes,
+          yAxis: errorVals,
+          lineName: name,
+          sampleSize: testSize,
+        });
+
+        //Update Data set based on the calculated data
       });
-      //Update Data set based on the calculated data
-      setLineData({
-        xAxis: voteSizes,
-        yAxis: errorVals,
-        lineOptions: options,
-        sampleSize: testSize,
-      });
-      console.log(lineData);
+
+      setLineData(formattedResults);
       //Render Graph
       setSubmitted(true);
     } catch (err) {}
@@ -155,6 +171,16 @@ const Form: React.FC<{
                 checked={options.closeInRank}
                 onChange={(e) => inputChangeHandler(e)}
                 name="closeInRank"
+              />
+            </div>
+            <div className="flex justify-between">
+              <label htmlFor="closeAndMax">Close Rank & Max Appearances</label>
+              <input
+                type={"checkbox"}
+                id={"closeAndMax"}
+                checked={options.closeAndMax}
+                onChange={(e) => inputChangeHandler(e)}
+                name="closeAndMax"
               />
             </div>
           </div>

@@ -5,6 +5,7 @@ import Header from "src-components/Header";
 
 import LineGraph from "src-components/simulation/LineGraph";
 import Form from "src-components/simulation/form";
+import type { LineData } from "src-components/simulation/form";
 
 const Simulation: NextPage = () => {
   const [options, setOptions] = useState({
@@ -47,14 +48,7 @@ const Simulation: NextPage = () => {
             </button>
           </div>
           {/* Create Graph if data */}
-          {data && (
-            <LineGraph
-              options={data.lineOptions}
-              xAxisValues={data.xAxis}
-              yAxisValues={data.yAxis}
-              sampleSize={data.sampleSize}
-            />
-          )}
+          <>{data && <LineGraph data={data} />}</>
         </div>
       )}
     </>
@@ -62,10 +56,3 @@ const Simulation: NextPage = () => {
 };
 
 export default Simulation;
-
-type LineData = {
-  xAxis: string[];
-  yAxis: number[];
-  lineOptions: Record<string, unknown>;
-  sampleSize: number;
-};
