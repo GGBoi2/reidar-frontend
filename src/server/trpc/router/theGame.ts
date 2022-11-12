@@ -1,7 +1,7 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { prisma } from "@/utils/prisma";
-import { getRandomMember } from "@/utils/getRandomMember";
+import { getFirstMember, getSecondMember } from "@/utils/getRandomMember";
 
 export const theGameRouter = router({
   //Edit this. Get all IDs. Pop user's ID from the stack on the front end instead of in the query
@@ -13,6 +13,14 @@ export const theGameRouter = router({
       },
       select: {
         id: true,
+        userId: true,
+        _count: {
+          select: {
+            votesFor: true,
+            votesAgainst: true,
+          },
+        },
+        //Grab raw score here.
       },
     });
   }),
@@ -28,13 +36,14 @@ export const theGameRouter = router({
       )
     )
     .query(async ({ input }) => {
-      //Technically nullish, but query won't run till input data exists on frontend
-      //Need this for typescript not liking potentially null values
       let firstId = "";
       let secondId = "";
+
       if (input.allIds) {
-        firstId = getRandomMember(input.allIds);
-        secondId = getRandomMember(input.allIds, firstId);
+        const result = getFirstMember(input.allIds);
+        firstId = result.id;
+
+        secondId = getSecondMember(input.allIds, firstId, result.index);
       }
       //Pick 2 random, unique ids
 

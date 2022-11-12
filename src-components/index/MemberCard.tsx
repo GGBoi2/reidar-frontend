@@ -4,7 +4,7 @@ import Image from "next/image";
 
 type RouterInput = GetInferenceHelpers<AppRouter>;
 type MemberFromServer =
-  RouterInput["example"]["getTwoMembers"]["output"]["firstMember"];
+  RouterInput["theGame"]["getTwoMembers"]["output"]["firstMember"];
 
 const MemberCard: React.FC<{
   member: MemberFromServer;

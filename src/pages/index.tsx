@@ -7,9 +7,10 @@ import { trpc } from "../utils/trpc";
 import { createProxySSGHelpers } from "@trpc/react-query/ssg";
 import { theGameRouter } from "@/server/trpc/router/theGame";
 import { createContextInner } from "@/server/trpc/context";
+import superjson from "superjson";
 
 import Header from "src-components/Header";
-import MemberCard from "src-components/MemberCard";
+import MemberCard from "src-components/index/MemberCard";
 import { useSession } from "next-auth/react";
 
 //Rework the Game
@@ -19,28 +20,48 @@ const Home: NextPage = () => {
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
 
   //Fetch all Ids once for the whole session rather than on each vote
-  const response = trpc.theGame.getDaoMemberIds.useQuery(undefined, {
-    refetchInterval: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-  });
-  console.log(response);
-  const allDaoMemberIds = response.data;
-  // const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
-  //   { selfId: session?.user.id || "" }, //Will not be null because query won't fire till it exists
-  //   {
-  //     enabled: Boolean(session?.user.id),
-  //     refetchInterval: false,
-  //     refetchOnReconnect: false,
-  //     refetchOnWindowFocus: false,
-  //   }
-  // );
+
+  const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
+    undefined,
+    {
+      refetchInterval: 1000 * 60 * 10,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  //----Before Query----
+  //Remove user's daoMember from pickable list
+  const filteredData = allDaoMemberIds
+    ?.filter((member) => {
+      if (session && member.userId !== session.user.id) return member;
+    })
+    .map((member) => {
+      const rawScore = member._count.votesFor - member._count.votesAgainst;
+      const appearances = member._count.votesFor + member._count.votesAgainst;
+
+      return {
+        id: member.id,
+        userId: member.userId,
+        rawScore: rawScore,
+        appearances: appearances,
+      };
+    });
+
+  //Sort Data
+  const sortedData = filteredData?.sort((a, b) => b.rawScore - a.rawScore);
+
+  //----During Query----
+
+  //Determine 2 Id's to pick based on close in rank (50% of the time)
+
+  //----Voting----
+  //If vote pushes you over limit for appearances, then flip pickable to false
 
   const { data: memberPair, refetch } = trpc.theGame.getTwoMembers.useQuery(
-    //Session undefined on first render. But doesn't matter because first render isn't shown for vote anyways
-    { allIds: allDaoMemberIds },
+    { allIds: sortedData },
     {
-      enabled: Boolean(allDaoMemberIds) && hasClaimedMember,
+      enabled: Boolean(sortedData) && hasClaimedMember,
       refetchInterval: false,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
@@ -151,14 +172,14 @@ export const getStaticProps = async () => {
   const ssg = createProxySSGHelpers({
     router: theGameRouter,
     ctx: await createContextInner({ session: null }),
+    transformer: superjson,
   });
 
-  const allIds = await ssg.getDaoMemberIds.fetch();
+  await ssg.getDaoMemberIds.fetch();
 
   return {
     props: {
       trpcState: ssg.dehydrate(),
-      allIds,
     },
     revalidate: 30,
   };
