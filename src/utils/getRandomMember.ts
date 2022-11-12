@@ -25,22 +25,18 @@ export const getSecondMember: (
   if (random > 0.5) {
     secondIndex = Math.floor(Math.random() * allIds.length);
   } else {
-    const pickSize = 20;
+    //Ensure that we stay within bounds of index
+    const pickSize = allIds.length > 20 ? 20 : allIds.length - 1;
+    const halfPick = Math.round(pickSize / 2);
 
-    const randomRoll =
-      Math.floor(Math.random() * pickSize) - Math.round(pickSize / 2);
-    console.log("initial index: " + firstIndex);
-    console.log("random Roll " + randomRoll);
+    const randomRoll = Math.floor(Math.random() * pickSize) - halfPick;
 
     if (randomRoll + firstIndex < 0) {
-      secondIndex = pickSize / 2 - randomRoll;
-      console.log("Top " + secondIndex);
+      secondIndex = halfPick - randomRoll;
     } else if (randomRoll + firstIndex > allIds.length - 1) {
-      secondIndex = allIds.length - 1 - (pickSize / 2 + randomRoll);
-      console.log("Mid " + secondIndex);
+      secondIndex = allIds.length - 1 - (halfPick + randomRoll);
     } else {
       secondIndex = firstIndex + randomRoll;
-      console.log("Bot " + secondIndex);
     }
   }
 

@@ -8,6 +8,7 @@ import { createProxySSGHelpers } from "@trpc/react-query/ssg";
 import { theGameRouter } from "@/server/trpc/router/theGame";
 import { createContextInner } from "@/server/trpc/context";
 import superjson from "superjson";
+import { AppRouterTypes } from "../utils/trpc";
 
 import Header from "src-components/Header";
 import MemberCard from "src-components/index/MemberCard";
@@ -19,8 +20,9 @@ const Home: NextPage = () => {
   const { data: session } = useSession();
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
 
-  //Fetch all Ids once for the whole session rather than on each vote
+  //TODO State for if someone has reached voting limit or not
 
+  //Fetch all Ids once for the whole session rather than on each vote
   const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
     undefined,
     {
@@ -31,11 +33,18 @@ const Home: NextPage = () => {
   );
 
   //----Before Query----
+  //Grab session's member so that I can check to see if they can still vote
+  let userMember: DaoMember[number];
   //Remove user's daoMember from pickable list
-  const filteredData = allDaoMemberIds
+  const sortedData = allDaoMemberIds
     ?.filter((member) => {
-      if (session && member.userId !== session.user.id) return member;
+      if (session && member.userId !== session.user.id) {
+        return member;
+      } else if (session && member.userId === session.user.id) {
+        userMember = member;
+      }
     })
+    //Generate Raw Score and # of appearances
     .map((member) => {
       const rawScore = member._count.votesFor - member._count.votesAgainst;
       const appearances = member._count.votesFor + member._count.votesAgainst;
@@ -46,18 +55,13 @@ const Home: NextPage = () => {
         rawScore: rawScore,
         appearances: appearances,
       };
-    });
+    })
+    //Sort Data by rawScore
+    .sort((a, b) => b.rawScore - a.rawScore);
 
-  //Sort Data
-  const sortedData = filteredData?.sort((a, b) => b.rawScore - a.rawScore);
+  //TODO If I haven't already stored the number of votes a user has, create a session storage of number of votes cast
 
-  //----During Query----
-
-  //Determine 2 Id's to pick based on close in rank (50% of the time)
-
-  //----Voting----
-  //If vote pushes you over limit for appearances, then flip pickable to false
-
+  //Pick 2 members for voting. 50% random, 50% close in rank
   const { data: memberPair, refetch } = trpc.theGame.getTwoMembers.useQuery(
     { allIds: sortedData },
     {
@@ -68,25 +72,51 @@ const Home: NextPage = () => {
     }
   );
 
-  //Voting Logic
+  //----Voting----
+  //Cast vote & If vote pushes member over limit for appearances, then flip pickable to false
   const voteMutation = trpc.theGame.voteForMember.useMutation();
+  const updateVoter = trpc.theGame.updateVoter.useMutation();
   const voteForMember = (selected: string) => {
     //Ensure that we have the data or else TS throws undefined errors
     if (!memberPair) return;
 
+    //Get Current total of member appearances including current appearance.
+    const firstShowings =
+      memberPair.firstMember._count.votesFor +
+      memberPair.firstMember._count.votesAgainst +
+      1;
+    const secondShowings =
+      memberPair.secondMember._count.votesFor +
+      memberPair.secondMember._count.votesAgainst +
+      1;
+
+    const maxAppearances = 40;
     //Vote for first option
     if (selected === memberPair.firstMember.id) {
       voteMutation.mutate({
         votedFor: memberPair.firstMember.id,
         votedAgainst: memberPair.secondMember.id,
-        voterId: session?.user.id,
+        //If over max appearances, then remove from voting pool
+        forPickable: firstShowings > maxAppearances ? false : undefined,
+        againstPickable: secondShowings > maxAppearances ? false : undefined,
       });
     } else {
       //Vote for second option
       voteMutation.mutate({
         votedFor: memberPair.secondMember.id,
         votedAgainst: memberPair.firstMember.id,
-        voterId: session?.user.id,
+        forPickable: secondShowings > maxAppearances ? false : undefined,
+        againstPickable: firstShowings > maxAppearances ? false : undefined,
+      });
+    }
+    //TODO Manage Vote Count for Current User. Update State if false. Use sessionStorage
+    //TODO VotesCast = sessionStorage + 1
+    const votesCast = userMember.votesCast ? userMember.votesCast + 1 : 0;
+
+    if (session?.user) {
+      updateVoter.mutate({
+        voterId: session.user.id,
+        ableToVote: true,
       });
     }
 
@@ -95,7 +125,7 @@ const Home: NextPage = () => {
 
   //Check to see if user has Dao Member which means eligible to play in "The Game"
   trpc.example.checkClaim.useQuery(
-    { id: session?.user.id || "" }, //Hacky fix due to type error in checkClaim
+    { id: session?.user.id },
     {
       enabled: Boolean(session?.user.id),
       onSuccess(data) {
@@ -166,6 +196,9 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+//Type Assignments
+type DaoMember = AppRouterTypes["theGame"]["getDaoMemberIds"]["output"];
 
 //SSG
 export const getStaticProps = async () => {

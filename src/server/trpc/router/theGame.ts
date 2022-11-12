@@ -14,6 +14,7 @@ export const theGameRouter = router({
       select: {
         id: true,
         userId: true,
+        votesCast: true,
         _count: {
           select: {
             votesFor: true,
@@ -53,6 +54,14 @@ export const theGameRouter = router({
             in: [firstId, secondId],
           },
         },
+        include: {
+          _count: {
+            select: {
+              votesFor: true,
+              votesAgainst: true,
+            },
+          },
+        },
       });
 
       if (BothMembers.length !== 2)
@@ -69,10 +78,13 @@ export const theGameRouter = router({
       z.object({
         votedFor: z.string(),
         votedAgainst: z.string(),
-        voterId: z.string().nullish(),
+
+        forPickable: z.boolean().optional(),
+        againstPickable: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
+      //Cast the votes in the database
       const voteInDb = await prisma.vote.create({
         data: {
           votedForId: input.votedFor,
@@ -80,16 +92,49 @@ export const theGameRouter = router({
         },
       });
 
-      if (input.voterId) {
+      //Only run if pickable has changed to false
+      if (input.forPickable === false) {
         await prisma.daoMember.update({
           where: {
-            userId: input.voterId,
+            id: input.votedFor,
           },
           data: {
-            votesCast: { increment: 1 },
+            pickable: input.forPickable,
           },
         });
       }
+
+      if (input.againstPickable === false) {
+        await prisma.daoMember.update({
+          where: {
+            id: input.votedAgainst,
+          },
+          data: {
+            pickable: input.againstPickable,
+          },
+        });
+      }
+
+      //Track number of times appeared & determine pickable
       return { success: true, vote: voteInDb };
+    }),
+  //Manage
+  updateVoter: publicProcedure
+    .input(
+      z.object({
+        voterId: z.string(),
+        ableToVote: z.boolean(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await prisma.daoMember.update({
+        where: {
+          userId: input.voterId,
+        },
+        data: {
+          ableToVote: input.ableToVote,
+          votesCast: { increment: 1 },
+        },
+      });
     }),
 });
