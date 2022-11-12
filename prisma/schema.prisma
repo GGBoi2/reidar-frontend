@@ -72,6 +72,8 @@ model DaoMember {
   userId        String? @unique
   discordId     String? @unique
   votesCast     Int?    @default(0)
+  pickable      Boolean @default(true)
+  ableToVote    Boolean @default(true)
 }
 
 model Vote {
