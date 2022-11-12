@@ -8,9 +8,6 @@ export const theGameRouter = router({
   getDaoMemberIds: publicProcedure.query(async () => {
     //Grab Everyone's id. Pop self on front end
     return await prisma.daoMember.findMany({
-      where: {
-        pickable: true,
-      },
       select: {
         id: true,
         userId: true,
@@ -21,7 +18,8 @@ export const theGameRouter = router({
             votesAgainst: true,
           },
         },
-        //Grab raw score here.
+        ableToVote: true,
+        pickable: true,
       },
     });
   }),
