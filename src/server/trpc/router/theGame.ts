@@ -19,7 +19,6 @@ export const theGameRouter = router({
           },
         },
         ableToVote: true,
-        pickable: true,
       },
     });
   }),
@@ -29,6 +28,7 @@ export const theGameRouter = router({
         z
           .object({
             id: z.string(),
+            appearances: z.number(),
           })
           .array()
           .nullish()
@@ -38,12 +38,26 @@ export const theGameRouter = router({
       let firstId = "";
       let secondId = "";
 
-      if (input.allIds) {
-        const result = getFirstMember(input.allIds);
-        firstId = result.id;
+      let result = { id: "", index: 0 };
+      let minShowings = 1000; //arbitrary high number
 
+      //5% chance to select lowest appearances for first id
+      if (Math.random() < 0.1) {
+        input.allIds?.map((member, index) => {
+          minShowings = Math.min(member.appearances, minShowings);
+          if (member.appearances === minShowings) {
+            firstId = member.id;
+            result.index = index;
+          }
+        });
+      } else if (input.allIds) {
+        result = getFirstMember(input.allIds);
+        firstId = result.id;
+      }
+      if (input.allIds) {
         secondId = getSecondMember(input.allIds, firstId, result.index);
       }
+
       //Pick 2 random, unique ids
 
       const BothMembers = await prisma.daoMember.findMany({
@@ -76,9 +90,6 @@ export const theGameRouter = router({
       z.object({
         votedFor: z.string(),
         votedAgainst: z.string(),
-
-        forPickable: z.boolean().optional(),
-        againstPickable: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -90,30 +101,6 @@ export const theGameRouter = router({
         },
       });
 
-      //Only run if pickable has changed to false
-      if (input.forPickable === false) {
-        await prisma.daoMember.update({
-          where: {
-            id: input.votedFor,
-          },
-          data: {
-            pickable: input.forPickable,
-          },
-        });
-      }
-
-      if (input.againstPickable === false) {
-        await prisma.daoMember.update({
-          where: {
-            id: input.votedAgainst,
-          },
-          data: {
-            pickable: input.againstPickable,
-          },
-        });
-      }
-
-      //Track number of times appeared & determine pickable
       return { success: true, vote: voteInDb };
     }),
   //Manage

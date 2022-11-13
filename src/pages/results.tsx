@@ -1,6 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import type { GetServerSideProps } from "next";
-import React from 'react';
+import React, { useState, useEffect } from "react";
 
 import { AppRouterTypes } from "@/utils/trpc";
 
@@ -23,6 +23,7 @@ const getMembersInOrder = async () => {
           votesAgainst: true,
         },
       },
+      votesCast: true,
     },
   });
 };
@@ -32,53 +33,61 @@ const getMembersInOrder = async () => {
 type MemberQueryResult =
   AppRouterTypes["example"]["getMembersInOrder"]["output"];
 
+const maxVoteCount = 30; //Keep in sync with the index page
+
 //Score Logic for results page
 const generateRawScore = (member: MemberQueryResult[number]) => {
   const { votesFor, votesAgainst } = member._count;
-  const Score = votesFor - votesAgainst;
+  const bonus = member.votesCast === maxVoteCount ? 1 : 0;
+  const Score = votesFor - votesAgainst + bonus;
+
   return Score;
 };
 
-
-
 //Generate Results Page
 const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
+  let completedVotes = 0;
+  props.member.map((member) => {
+    return member.votesCast === maxVoteCount ? completedVotes++ : 0;
+  });
 
-
-  React.useEffect(() => {
-
+  useEffect(() => {
     // Logic for adding a sticky header and updating the element styling
-    
+
     function handleScroll() {
-      const tableHeader = document.querySelector('.table-header') as HTMLElement;
+      const tableHeader = document.querySelector(
+        ".table-header"
+      ) as HTMLElement;
       const tableHeaderTop = tableHeader.getBoundingClientRect().top;
 
       if (tableHeaderTop <= 0) {
-        tableHeader.classList.add('stuck');
+        tableHeader.classList.add("stuck");
       } else if (tableHeaderTop > 0) {
-        tableHeader.classList.remove('stuck');
+        tableHeader.classList.remove("stuck");
       }
     }
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('mousemove', handleScroll);
-    }
-
-  }, [])
+      window.removeEventListener("mousemove", handleScroll);
+    };
+  }, []);
 
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center text-slate-300 font-mono">
-        <h1 className="p-4 text-2xl text-white mt-12 mb-6">🏆 Results</h1>
+      <div className="flex flex-col items-center font-mono text-slate-300">
+        <h1 className="mt-12 mb-6 p-4 text-2xl text-white">🏆 Results</h1>
+        <h3 className="text-m  text-white">Members Voted: {completedVotes}</h3>
         <div className="p-4"></div>
-        <div className="flex w-full max-w-[725px] flex-col border-slate-500 rounded-lg mb-16">
-          <div className="table-header flex font-bold text-sm uppercase justify-start border-slate-500 bg-slate-600 py-1 rounded-t-lg">
-            <span className="pl-5 p-2">Rank</span>
+        <div className="mb-16 flex w-full max-w-[725px] flex-col rounded-lg border-slate-500">
+          <div className="table-header flex justify-start rounded-t-lg border-slate-500 bg-slate-600 py-1 text-sm font-bold uppercase">
+            <span className="p-2 pl-5">Rank</span>
 
-            <span className="flex flex-grow justidy-start text-left p-2 pl-[90px]">Name</span>
+            <span className="justidy-start flex flex-grow p-2 pl-[90px] text-left">
+              Name
+            </span>
             <span className="flex p-2 pr-6">Raw Score</span>
           </div>
           {props.member
