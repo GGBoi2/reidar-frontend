@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { AppRouterTypes } from "@/utils/trpc";
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 //Generate Individual Ranking Rows
 type MemberQueryResult =

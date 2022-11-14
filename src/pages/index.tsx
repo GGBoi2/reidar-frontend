@@ -23,6 +23,7 @@ const Home: NextPage = () => {
   const [voteCount, setVoteCount] = useState(0);
 
   const maxVoteCount = 30; //Prod is 30
+  console.log(canVote);
 
   let minShowings = 100; //Arbitrarily High number to be reduced
   const closeBuffer = 3; //Difference in number of appearances between min & max
@@ -177,14 +178,14 @@ const Home: NextPage = () => {
           <div>Choose a Dao Member</div>
         </div>
 
-        <div>
+        <div className="">
           {/* Query returns 2 members & account has a valid dao member tied to it */}
           {memberPair && hasClaimedMember && canVote && (
             <div className="flex flex-col items-center justify-between">
               <div className="p-2 text-xl">
                 You have {maxVoteCount - voteCount} votes left to cast
               </div>
-              <div className="rounder flex items-center justify-between border p-8">
+              <div className="rounder flex items-center justify-between border p-8 lg:flex-col">
                 <MemberCard
                   member={memberPair.firstMember}
                   vote={() => voteForMember(memberPair.firstMember.id)}
