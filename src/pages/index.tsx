@@ -28,15 +28,13 @@ const Home: NextPage = () => {
   const closeBuffer = 3; //Difference in number of appearances between min & max
 
   //Fetch all Ids once for the whole session rather than on each vote
-  const { data: allDaoMemberIds } = trpc.theGame.getDaoMemberIds.useQuery(
-    undefined,
-    {
+  const { data: allDaoMemberIds, refetch: refreshData } =
+    trpc.theGame.getDaoMemberIds.useQuery(undefined, {
       enabled: Boolean(session),
       refetchInterval: 1000 * 60 * 10,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
-    }
-  );
+    });
 
   //----Before Query----
   //Grab session's member so that I can check to see if they can still vote
@@ -102,7 +100,7 @@ const Home: NextPage = () => {
   //----Voting----
   const voteMutation = trpc.theGame.voteForMember.useMutation();
   const updateVoter = trpc.theGame.updateVoter.useMutation();
-  const voteForMember = (selected: string) => {
+  const voteForMember = async (selected: string) => {
     //Ensure that we have the data or else TS throws undefined errors
     if (!memberPair) return;
 
@@ -138,9 +136,16 @@ const Home: NextPage = () => {
         ableToVote: currentCount >= maxVoteCount ? false : true,
       });
     }
-
-    getNewPair();
+    if (voteCount % 10 === 0 && voteCount !== 0) {
+      await timeout(500);
+      refreshData();
+    } else {
+      getNewPair();
+    }
   };
+  function timeout(delay: number) {
+    return new Promise((res) => setTimeout(res, delay));
+  }
 
   //Check to see if user has Dao Member which means eligible to play in "The Game"
   trpc.example.checkClaim.useQuery(

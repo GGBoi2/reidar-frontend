@@ -41,15 +41,23 @@ export const theGameRouter = router({
       let result = { id: "", index: 0 };
       let minShowings = 1000; //arbitrary high number
 
-      //5% chance to select lowest appearances for first id
+      //10% chance to select lowest appearances for first id
       if (Math.random() < 0.1) {
-        input.allIds?.map((member, index) => {
-          minShowings = Math.min(member.appearances, minShowings);
-          if (member.appearances === minShowings) {
-            firstId = member.id;
-            result.index = index;
-          }
-        });
+        //Generate array of all the lowest appearance members
+        const lowAppearances = input.allIds
+          ?.map((member) => {
+            minShowings = Math.min(member.appearances, minShowings);
+            return member;
+          })
+          .filter((member) => member.appearances === minShowings);
+
+        //Select member randomly from lowest appearance array
+        if (lowAppearances) {
+          const index = Math.floor(Math.random() * lowAppearances?.length);
+          firstId = lowAppearances[index].id;
+          result.index = index;
+        }
+        //Otherwise, just select someone random
       } else if (input.allIds) {
         result = getFirstMember(input.allIds);
         firstId = result.id;
@@ -58,8 +66,7 @@ export const theGameRouter = router({
         secondId = getSecondMember(input.allIds, firstId, result.index);
       }
 
-      //Pick 2 random, unique ids
-
+      //Gather Data on the selected Ids
       const BothMembers = await prisma.daoMember.findMany({
         where: {
           id: {
