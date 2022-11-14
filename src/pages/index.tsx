@@ -23,7 +23,6 @@ const Home: NextPage = () => {
   const [voteCount, setVoteCount] = useState(0);
 
   const maxVoteCount = 30; //Prod is 30
-  console.log(canVote);
 
   let minShowings = 100; //Arbitrarily High number to be reduced
   const closeBuffer = 3; //Difference in number of appearances between min & max
@@ -50,6 +49,7 @@ const Home: NextPage = () => {
 
       //Get the user's data
       if (session && member.userId === session.user.id) {
+        console.log("hello");
         userMember = member;
       }
 
@@ -76,6 +76,9 @@ const Home: NextPage = () => {
     })
     //Sort Data by rawScore
     .sort((a, b) => b.rawScore - a.rawScore);
+
+  console.log(session);
+  console.log(userMember);
 
   //Set if they can vote & set initial vote count of voter
   useEffect(() => {
