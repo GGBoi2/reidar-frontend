@@ -49,7 +49,6 @@ const Home: NextPage = () => {
 
       //Get the user's data
       if (session && member.userId === session.user.id) {
-        console.log("hello");
         userMember = member;
       }
 
@@ -76,9 +75,6 @@ const Home: NextPage = () => {
     })
     //Sort Data by rawScore
     .sort((a, b) => b.rawScore - a.rawScore);
-
-  console.log(session);
-  console.log(userMember);
 
   //Set if they can vote & set initial vote count of voter
   useEffect(() => {
