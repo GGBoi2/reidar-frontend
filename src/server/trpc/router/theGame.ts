@@ -114,7 +114,6 @@ export const theGameRouter = router({
     .input(
       z.object({
         voterId: z.string(),
-        ableToVote: z.boolean(),
       })
     )
     .mutation(async ({ input }) => {
@@ -123,7 +122,6 @@ export const theGameRouter = router({
           userId: input.voterId,
         },
         data: {
-          ableToVote: input.ableToVote,
           votesCast: { increment: 1 },
         },
       });

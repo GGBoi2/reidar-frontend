@@ -133,7 +133,6 @@ const Home: NextPage = () => {
     if (session?.user) {
       updateVoter.mutate({
         voterId: session.user.id,
-        ableToVote: currentCount >= maxVoteCount ? false : true,
       });
     }
     if (voteCount % 10 === 0 && voteCount !== 0) {
