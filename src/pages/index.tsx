@@ -76,8 +76,8 @@ const Home: NextPage = () => {
 
   //Set if they can vote & set initial vote count of voter
   useEffect(() => {
-    if (userMember) {
-      setCanVote(userMember.ableToVote);
+    if (userMember?.votesCast !== maxVoteCount && userMember) {
+      setCanVote(true);
 
       if (userMember.votesCast) {
         setVoteCount(userMember.votesCast);
@@ -133,7 +133,6 @@ const Home: NextPage = () => {
     if (session?.user) {
       updateVoter.mutate({
         voterId: session.user.id,
-        ableToVote: currentCount >= maxVoteCount ? false : true,
       });
     }
     if (voteCount % 10 === 0 && voteCount !== 0) {
