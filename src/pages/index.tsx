@@ -76,8 +76,8 @@ const Home: NextPage = () => {
 
   //Set if they can vote & set initial vote count of voter
   useEffect(() => {
-    if (userMember) {
-      setCanVote(userMember.ableToVote);
+    if (userMember?.votesCast !== maxVoteCount && userMember) {
+      setCanVote(true);
 
       if (userMember.votesCast) {
         setVoteCount(userMember.votesCast);
