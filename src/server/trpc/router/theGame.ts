@@ -18,7 +18,6 @@ export const theGameRouter = router({
             votesAgainst: true,
           },
         },
-        ableToVote: true,
       },
     });
   }),
