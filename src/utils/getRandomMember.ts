@@ -1,5 +1,3 @@
-import { string } from "zod";
-
 // Create a function that takes parameters of type allIds & notThisOne that returns a type string
 export const getFirstMember: (allIds: { id: string }[]) => {
   id: string;

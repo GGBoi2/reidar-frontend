@@ -101,6 +101,7 @@ export const exampleRouter = router({
             votesAgainst: true,
           },
         },
+        votesCast: true,
       },
     });
   }),
