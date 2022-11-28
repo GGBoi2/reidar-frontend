@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  secret: env.NEXTAUTH_SECRET,
   // Include user.id on session
   callbacks: {
     async jwt({ token, account, profile, user, isNewUser }) {

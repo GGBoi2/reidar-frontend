@@ -1,6 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import type { GetServerSideProps } from "next";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { AppRouterTypes } from "@/utils/trpc";
 
@@ -21,6 +21,7 @@ const getMembersInOrder = async () => {
         select: {
           votesFor: true,
           votesAgainst: true,
+          //Where time period
         },
       },
       votesCast: true,
