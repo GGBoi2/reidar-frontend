@@ -27,6 +27,9 @@ function Header() {
         <Link href="/simulation">
           <a className="px-2">Simulation</a>
         </Link>
+        <Link href="https://reidarchart.web.app/">
+          <a className="px-2">Analytics</a>
+        </Link>
         {session && (
           <>
             <button
