@@ -72,8 +72,8 @@ model DaoMember {
   userId        String? @unique
   discordId     String? @unique
   votesCast     Int?    @default(0)
-  pickable      Boolean @default(true)
-  // ableToVote    Boolean @default(true)
+
+  votingRecord VotingRecord[] @relation("Voting_Record")
 }
 
 model Vote {
@@ -86,4 +86,24 @@ model Vote {
 
   @@index([votedForId])
   @@index([votedAgainstId])
+}
+
+model VotingRecord {
+  id           String        @id @default(cuid())
+  daoMember    DaoMember?    @relation("Voting_Record", fields: [daoMemberId], references: [id])
+  daoMemberId  String        @unique
+  rawScore     Int
+  hasVoted     Boolean
+  votingPeriod VotingPeriod? @relation("Voting_Period", fields: [votingTitle], references: [title])
+  votingTitle  String
+}
+
+model VotingPeriod {
+  id           String   @id @default(cuid())
+  title        String   @unique
+  startTime    DateTime
+  endTime      DateTime
+  maxVoteCount Int
+
+  votingRecord VotingRecord[] @relation("Voting_Period")
 }
