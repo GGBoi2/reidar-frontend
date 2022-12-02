@@ -162,6 +162,14 @@ const Home: NextPage = () => {
     }
   );
 
+  //Check to see if there is an active voting period
+  const votingPeriod = trpc.theGame.getVotingPeriod.useQuery(undefined, {
+    refetchInterval: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+  console.log(votingPeriod.data);
+
   return (
     <>
       <Head>
