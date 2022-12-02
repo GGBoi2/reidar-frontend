@@ -15,15 +15,15 @@ import MemberCard from "src-components/index/MemberCard";
 import { useSession } from "next-auth/react";
 
 //Rework the Game
-const Home: NextPage = () => {
+const Home: NextPage = (props: any) => {
   //Fetch 2 Members
+
   const { data: session } = useSession();
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
   const [canVote, setCanVote] = useState(false);
   const [voteCount, setVoteCount] = useState(0);
 
   const maxVoteCount = 30; //Prod is 30
-
   let minShowings = 100; //Arbitrarily High number to be reduced
   const closeBuffer = 3; //Difference in number of appearances between min & max
 
@@ -168,7 +168,6 @@ const Home: NextPage = () => {
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-  console.log(votingPeriod.data);
 
   return (
     <>
@@ -246,12 +245,16 @@ export const getStaticProps = async () => {
     transformer: superjson,
   });
 
-  await ssg.getDaoMemberIds.fetch();
+  const memberIds = await ssg.getDaoMemberIds.fetch();
+
+  const serverTime = Date.now();
 
   return {
     props: {
       trpcState: ssg.dehydrate(),
+      serverTime: serverTime,
+      memberIds: memberIds,
     },
-    revalidate: 30,
+    revalidate: 1,
   };
 };

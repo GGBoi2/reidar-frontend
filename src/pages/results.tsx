@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { AppRouterTypes } from "@/utils/trpc";
 
 import Header from "src-components/Header";
+import Navigation from "src-components/results/Navigation";
 import MemberRow from "src-components/MemberRow";
 
 const getMembersInOrder = async () => {
@@ -79,6 +80,7 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
       <Header />
       <div className="flex flex-col items-center font-mono text-slate-300">
         <h1 className="mt-12 mb-6 p-4 text-2xl text-white">🏆 Results</h1>
+        <Navigation pageTitles={["title 1", "title 2", "title 3"]} />
         <h3 className="text-m  text-white">Members Voted: {completedVotes}</h3>
         <div className="p-4"></div>
         <div className="mb-16 flex w-full max-w-[725px] flex-col rounded-lg border-slate-500">

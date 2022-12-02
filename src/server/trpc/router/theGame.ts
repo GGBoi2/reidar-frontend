@@ -130,8 +130,6 @@ export const theGameRouter = router({
     const date = new Date(Date.now()); //Use Class to access toISOString function
     const currentTime = date.toISOString(); // Match Prisma typing
 
-    console.log("hi" + currentTime);
-
     return await prisma.votingPeriod.findFirst({
       where: {
         startTime: { lte: currentTime },
