@@ -12,6 +12,7 @@ import { AppRouterTypes } from "../utils/trpc";
 
 import Header from "src-components/Header";
 import MemberCard from "src-components/index/MemberCard";
+import Timer from "src-components/index/Timer";
 import { useSession } from "next-auth/react";
 
 //Rework the Game
@@ -186,6 +187,12 @@ const Home: NextPage = (props: any) => {
       <div className="relative flex  w-screen flex-col items-center justify-center">
         <div className=" top-0 mt-8 mb-2 text-center text-2xl">
           <div>Choose a Dao Member</div>
+          {votingPeriod.data && (
+            <Timer
+              endTime={new Date(votingPeriod.data?.endTime).getTime()}
+              serverTime={props.serverTime}
+            />
+          )}
         </div>
 
         <div className="">
