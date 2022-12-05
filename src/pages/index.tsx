@@ -23,8 +23,8 @@ const Home: NextPage = (props: any) => {
   const [hasClaimedMember, setHasClaimedMember] = useState(false);
   const [canVote, setCanVote] = useState(false);
   const [voteCount, setVoteCount] = useState(0);
+  const [maxVoteCount, setMaxVoteCount] = useState(0);
 
-  const maxVoteCount = 30; //Prod is 30
   let minShowings = 100; //Arbitrarily High number to be reduced
   const closeBuffer = 3; //Difference in number of appearances between min & max
 
@@ -36,6 +36,8 @@ const Home: NextPage = (props: any) => {
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
     });
+
+  //[[TODO]] Need to adjust all queries so that they take only from the current periods voting counts
 
   //----Before Query----
   //Grab session's member so that I can check to see if they can still vote
@@ -77,14 +79,11 @@ const Home: NextPage = (props: any) => {
 
   //Set if they can vote & set initial vote count of voter
   useEffect(() => {
-    if (userMember?.votesCast !== maxVoteCount && userMember) {
+    if (userMember?.votesCast && userMember?.votesCast < maxVoteCount) {
       setCanVote(true);
-
-      if (userMember.votesCast) {
-        setVoteCount(userMember.votesCast);
-      }
+      setVoteCount(userMember.votesCast);
     }
-  }, [userMember]);
+  }, [userMember, maxVoteCount]);
 
   //Pick 2 members for voting. 50% random, 50% close in rank
   const { data: memberPair, refetch: getNewPair } =
@@ -163,12 +162,37 @@ const Home: NextPage = (props: any) => {
     }
   );
 
-  //Check to see if there is an active voting period
+  //Check to see if there is an active voting period & set max vote count if one exists
   const votingPeriod = trpc.theGame.getVotingPeriod.useQuery(undefined, {
+    onSuccess(data) {
+      if (data) {
+        setMaxVoteCount(data.maxVoteCount);
+      }
+    },
     refetchInterval: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
+
+  //Various HomePage Voting Logics. Rework these as I can nest many of them under the same one
+  const ableToVote = Boolean(
+    memberPair && hasClaimedMember && canVote && votingPeriod.data
+  );
+  const noActiveVote = Boolean(
+    memberPair && hasClaimedMember && !votingPeriod.data
+  );
+  const hasCastVotes = Boolean(
+    memberPair && hasClaimedMember && !canVote && votingPeriod.data
+  );
+  const loadingValidQuery = Boolean(
+    !memberPair && session?.user.id && hasClaimedMember
+  );
+  console.log("start");
+  console.log(memberPair);
+  console.log(hasClaimedMember);
+  console.log(canVote);
+  console.log(votingPeriod.data);
+  console.log("end");
 
   return (
     <>
@@ -197,36 +221,38 @@ const Home: NextPage = (props: any) => {
 
         <div className="">
           {/* Query returns 2 members & account has a valid dao member tied to it */}
-          {memberPair && hasClaimedMember && canVote && (
-            <div className="flex flex-col items-center justify-between">
-              <div className="p-2 text-xl">
-                You have {maxVoteCount - voteCount} votes left to cast
+          {ableToVote &&
+            memberPair && ( //Need memberPair for TS not being smart enough
+              <div className="flex flex-col items-center justify-between">
+                <div className="p-2 text-xl">
+                  You have {maxVoteCount - voteCount} votes left to cast
+                </div>
+                <div className="rounder flex items-center justify-between border p-8 lg:flex-col">
+                  <MemberCard
+                    member={memberPair.firstMember}
+                    vote={() => voteForMember(memberPair.firstMember.id)}
+                  />
+                  <div className="p-16 text-2xl">Vs</div>
+                  <MemberCard
+                    member={memberPair.secondMember}
+                    vote={() => voteForMember(memberPair.secondMember.id)}
+                  />
+                </div>
               </div>
-              <div className="rounder flex items-center justify-between border p-8 lg:flex-col">
-                <MemberCard
-                  member={memberPair.firstMember}
-                  vote={() => voteForMember(memberPair.firstMember.id)}
-                />
-                <div className="p-16 text-2xl">Vs</div>
-                <MemberCard
-                  member={memberPair.secondMember}
-                  vote={() => voteForMember(memberPair.secondMember.id)}
-                />
-              </div>
-            </div>
-          )}
-          {memberPair && hasClaimedMember && !canVote && (
+            )}
+          {hasCastVotes && (
             <div>You have cast all of your votes for this period.</div>
           )}
+          {noActiveVote && <div>There is no vote active at the moment.</div>}
           {/* Query is loading & account exists & has dao member tied to it */}
-          {!memberPair && session?.user.id && hasClaimedMember && (
+          {loadingValidQuery && (
             <Image src="/loading-spinner.svg" width={256} height={256} alt="" />
           )}
           {/* Account exists but has not claimed a dao member */}
           {session?.user.id && !hasClaimedMember && (
             <div>
-              You must claim your Dao Member on the account tab before you can
-              vote in the game.
+              You are not eligible to participate in &quot;The Game&quot; or you
+              have not yet claimed a Dao member on the account page.
             </div>
           )}
           {/* User not signed in */}

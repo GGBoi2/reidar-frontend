@@ -105,16 +105,90 @@ export const exampleRouter = router({
       },
     });
   }),
-  getUnclaimedMembers: publicProcedure.query(async () => {
-    return await prisma.daoMember.findMany({
+  getScores: publicProcedure.query(async () => {
+    const VotingPeriod = await prisma.votingPeriod.findMany({
+      orderBy: { endTime: "desc" },
+      select: {
+        title: true,
+        startTime: true,
+        endTime: true,
+      },
+      take: 1,
+    });
+    const latestVote = VotingPeriod[0];
+
+    //Get All Users
+    const userData = await prisma.daoMember.findMany({
       select: {
         id: true,
         name: true,
-      },
-      where: {
-        userId: null,
-        discordId: null,
+        image_url: true,
+        votesCast: true,
       },
     });
+
+    //   --- Request all Votes from current period ---
+    const voteData = await prisma.vote.findMany({
+      where: {
+        createdAt: {
+          gte: latestVote.startTime,
+          lte: latestVote.endTime,
+        },
+      },
+      select: {
+        votedForId: true,
+        votedAgainstId: true,
+      },
+      orderBy: {
+        votedForId: "desc",
+      },
+    });
+
+    //Create score array to keep track of user results
+    const scoreArray: {
+      id: string;
+      name: string;
+      image_url: string;
+      votesFor: number;
+      votesAgainst: number;
+      votesCast: boolean;
+    }[] = [];
+    userData.map((user) => {
+      scoreArray.push({
+        id: user.id,
+        name: user.name,
+        image_url: user.image_url,
+        votesFor: 0,
+        votesAgainst: 0,
+        votesCast: Boolean(user.votesCast),
+      });
+    });
+    //Generate scores
+    voteData.map((vote) => {
+      scoreArray.map((score) => {
+        if (vote.votedForId === score.id) {
+          score.votesFor++;
+        }
+        if (vote.votedAgainstId === score.id) {
+          score.votesAgainst++;
+        }
+      });
+    });
+
+    //Replace votedFor/Against fields with score & sort
+    const results = scoreArray
+      .map((score) => {
+        return {
+          id: score.id,
+          name: score.name,
+          image_url: score.image_url,
+          score:
+            score.votesFor - score.votesAgainst + (score.votesCast ? 1 : 0),
+          hasVoted: score.votesCast,
+        };
+      })
+      .sort((a, b) => a.score - b.score);
+
+    return results;
   }),
 });

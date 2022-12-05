@@ -1,55 +1,20 @@
-import { prisma } from "@/utils/prisma";
-import type { GetServerSideProps } from "next";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { AppRouterTypes } from "@/utils/trpc";
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { exampleRouter } from "@/server/trpc/router/example";
+import { createContextInner } from "@/server/trpc/context";
+import superjson from "superjson";
 
 import Header from "src-components/Header";
 import Navigation from "src-components/results/Navigation";
 import MemberRow from "src-components/MemberRow";
 
-const getMembersInOrder = async () => {
-  //This is type defined in router/example.ts to match this. Should eventually use
-  //ssg-helpers from trpc v10, but looks complicated to figure out and easier to just
-  //manually keep these linked for now
-  return await prisma.daoMember.findMany({
-    orderBy: { votesFor: { _count: "desc" } },
-    select: {
-      id: true,
-      name: true,
-      image_url: true,
-      _count: {
-        select: {
-          votesFor: true,
-          votesAgainst: true,
-        },
-      },
-      votesCast: true,
-    },
-  });
-};
-
-//Type matching from router/example.ts
-//Update if getMembersInOrder changes
-type MemberQueryResult =
-  AppRouterTypes["example"]["getMembersInOrder"]["output"];
-
-const maxVoteCount = 30; //Keep in sync with the index page
-
-//Score Logic for results page
-const generateRawScore = (member: MemberQueryResult[number]) => {
-  const { votesFor, votesAgainst } = member._count;
-  const bonus = member.votesCast === maxVoteCount ? 1 : 0;
-  const Score = votesFor - votesAgainst + bonus;
-
-  return Score;
-};
-
 //Generate Results Page
-const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
+const ResultsPage: React.FC<{ member: MemberResults }> = (props: any) => {
   let completedVotes = 0;
-  props.member.map((member) => {
-    return member.votesCast === maxVoteCount ? completedVotes++ : 0;
+  props.results.map((member: MemberResults[number]) => {
+    return member.hasVoted ? completedVotes++ : 0;
   });
 
   useEffect(() => {
@@ -92,18 +57,17 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
             </span>
             <span className="flex p-2 pr-6">Raw Score</span>
           </div>
-          {props.member
-            .sort((a, b) => generateRawScore(b) - generateRawScore(a))
-            .map((currentMember: MemberQueryResult[number], index: number) => {
+          {props.results.map(
+            (currentMember: MemberResults[number], index: number) => {
               return (
                 <MemberRow
                   key={index}
                   rank={index + 1}
                   member={currentMember}
-                  score={generateRawScore(currentMember)}
                 />
               );
-            })}
+            }
+          )}
         </div>
       </div>
     </>
@@ -112,9 +76,24 @@ const ResultsPage: React.FC<{ member: MemberQueryResult }> = (props) => {
 
 export default ResultsPage;
 
-//Fetch all members server side
-export const getStaticProps: GetServerSideProps = async () => {
-  const memberOrdered = await getMembersInOrder();
+type MemberResults = AppRouterTypes["example"]["getScores"]["output"];
 
-  return { props: { member: memberOrdered }, revalidate: 60 };
+//SSG
+export const getStaticProps = async () => {
+  const ssg = createProxySSGHelpers({
+    router: exampleRouter,
+    ctx: await createContextInner({ session: null }),
+    transformer: superjson,
+  });
+
+  const results = await ssg.getScores.fetch();
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+
+      results: results,
+    },
+    revalidate: 1,
+  };
 };

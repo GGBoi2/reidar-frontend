@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Head from "next/head";
 
 const Timer: React.FC<{ endTime: number; serverTime: number }> = (props) => {
   const [activeVotingPeriod, setActiveVotingPeriod] = useState(true);
@@ -63,7 +62,7 @@ const Timer: React.FC<{ endTime: number; serverTime: number }> = (props) => {
     // Update the state with the new time string
 
     setTimeString(stringRemaining);
-  }, [currentTime]);
+  }, [currentTime, endTime]);
 
   //{Math.max(0, Math.round((endTime - currentTime) / 1000))}
   return (
